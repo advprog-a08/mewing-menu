@@ -49,6 +49,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("io.github.cdimascio:dotenv-java:3.0.0")
 }
 
 tasks.withType<Test> {
