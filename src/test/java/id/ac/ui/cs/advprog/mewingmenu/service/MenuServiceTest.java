@@ -89,6 +89,18 @@ public class MenuServiceTest {
     }
 
     @Test
+    @DisplayName("It should not create a duplicate menu")
+    void testCreateDuplicateMenu() {
+        when(menuRepository.findByName(mockMenu.getName())).thenReturn(Optional.of(mockMenu));
+
+        try {
+            menuService.createMenu(mockMenu);
+        } catch (IllegalStateException e) {
+            assertEquals("Menu with name Nasi Goreng already exists", e.getMessage());
+        }
+    }
+
+    @Test
     @DisplayName("It should update an existing menu")
     void testUpdateMenu() {
         Menu updatedMenu = new Menu();

@@ -82,6 +82,18 @@ public class MenuCategoryServiceTest {
     }
 
     @Test
+    void testCreateDuplicateMenuCategory() {
+        when(menuCategoryRepository.findByName(menuCategory.getName())).thenReturn(Optional.of(menuCategory));
+
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            menuCategoryService.createMenuCategory(menuCategory);
+        });
+
+        assertEquals("Menu category with name " + menuCategory.getName() + " already exists", exception.getMessage());
+        verify(menuCategoryRepository, times(1)).findByName(menuCategory.getName());
+    }
+
+    @Test
     void testUpdateMenuCategory() {
         MenuCategory updatedCategory = new MenuCategory();
         updatedCategory.setName("Updated Name");
