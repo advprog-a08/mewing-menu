@@ -7,6 +7,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
@@ -26,8 +27,7 @@ import lombok.ToString;
 public class MenuCategory {
 
     @Id
-    @GeneratedValue
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @NotBlank(message = "Name is required")
