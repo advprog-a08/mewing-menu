@@ -17,7 +17,10 @@ USER ${USER_NAME}
 WORKDIR /opt/advshop
 COPY --from=builder --chown=${USER_UID}:${USER_GID} /src/advshop/build/libs/*.jar app.jar
 
+# Copy entrypoint script
+COPY --chown=${USER_UID}:${USER_GID} entrypoint.sh entrypoint.sh
+RUN chmod +x entrypoint.sh
+
 EXPOSE 8080
 
-ENTRYPOINT [ "java" ]
-CMD [ "-jar", "app.jar" ]
+ENTRYPOINT ["./entrypoint.sh"]
