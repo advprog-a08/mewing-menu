@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +58,7 @@ public class MenuCategoryRepositoryTest {
         category.setName("Desserts");
 
         menuCategoryRepository.save(category);
-        UUID categoryId = category.getId();
+        String categoryId = category.getId();
 
         menuCategoryRepository.deleteById(categoryId);
 
@@ -71,7 +70,7 @@ public class MenuCategoryRepositoryTest {
     @DisplayName("It should return empty when MenuCategory is not found")
     void testFindNonExistingCategory() {
 
-        UUID nonExistingId = this.category.getId();
+        String nonExistingId = this.category.getId();
 
         // Delete the category
         menuCategoryRepository.deleteById(nonExistingId);

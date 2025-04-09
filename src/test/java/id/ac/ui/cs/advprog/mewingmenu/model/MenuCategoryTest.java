@@ -28,7 +28,7 @@ public class MenuCategoryTest {
     @Test
     public void testValidMenuCategory() {
         MenuCategory category = new MenuCategory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
                 "Beverages",
                 "All kinds of drinks",
                 null);
@@ -40,7 +40,7 @@ public class MenuCategoryTest {
     @Test
     public void testNameTooShort() {
         MenuCategory category = new MenuCategory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
                 "Food",
                 "Some description",
                 null);
@@ -53,7 +53,8 @@ public class MenuCategoryTest {
     @Test
     public void testNameBlank() {
         MenuCategory category = new MenuCategory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
+
                 "  ",
                 "Some description",
                 null);
@@ -67,7 +68,7 @@ public class MenuCategoryTest {
     public void testDescriptionTooLong() {
         String longDescription = "A".repeat(256);
         MenuCategory category = new MenuCategory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
                 "Desserts",
                 longDescription,
                 null);

@@ -2,7 +2,6 @@ package id.ac.ui.cs.advprog.mewingmenu.menu.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public Optional<Menu> getMenuById(UUID id) {
+    public Optional<Menu> getMenuById(String id) {
         return menuRepository.findById(id);
     }
 
@@ -31,7 +30,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public Optional<Menu> updateMenu(UUID id, Menu menu) {
+    public Optional<Menu> updateMenu(String id, Menu menu) {
         return menuRepository.findById(id)
                 .map(existingMenu -> {
                     existingMenu.setName(menu.getName());
@@ -43,7 +42,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
-    public void deleteMenu(UUID id) {
+    public void deleteMenu(String id) {
         menuRepository.deleteById(id);
     }
 }

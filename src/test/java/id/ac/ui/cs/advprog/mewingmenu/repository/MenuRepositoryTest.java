@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,7 +77,7 @@ public class MenuRepositoryTest {
         menu.setCategory(category);
         menu = menuRepository.save(menu);
 
-        UUID menuId = menu.getId();
+        String menuId = menu.getId();
         menuRepository.deleteById(menuId);
 
         Optional<Menu> deleted = menuRepository.findById(menuId);

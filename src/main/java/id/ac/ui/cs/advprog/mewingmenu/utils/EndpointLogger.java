@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.mewingmenu.utils;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -17,7 +16,7 @@ public class EndpointLogger implements HandlerInterceptor {
             HttpServletResponse response,
             Object handler) {
 
-        String logId = UUID.randomUUID().toString();
+        String logId = Long.toString(System.currentTimeMillis());
         request.setAttribute("logId", logId); // optional, for later use
 
         System.out.printf("[%s] %s %s%n", LocalDateTime.now(), request.getMethod(), request.getRequestURI());

@@ -39,15 +39,14 @@ public class MenuServiceTest {
     private MenuServiceImpl menuService;
 
     private Menu mockMenu;
-    private UUID mockId;
+    private String mockId;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        mockId = UUID.randomUUID();
         MenuCategory category = new MenuCategory();
-        category.setId(UUID.randomUUID());
+        category.setId(UUID.randomUUID().toString());
         category.setName("Food");
 
         mockMenu = new Menu();
@@ -109,7 +108,7 @@ public class MenuServiceTest {
     @Test
     @DisplayName("It should delete a menu by ID")
     void testDeleteMenu() {
-        UUID menuId = UUID.randomUUID();
+        String menuId = UUID.randomUUID().toString();
         doNothing().when(menuRepository).deleteById(menuId);
 
         menuService.deleteMenu(menuId);

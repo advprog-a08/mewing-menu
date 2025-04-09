@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Set;
-import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,6 @@ public class MenuTest {
 
     private static Menu createValidMenu() {
         Menu menu = new Menu();
-        menu.setId(UUID.randomUUID());
         menu.setName("Delicious Burger");
         menu.setDescription("A super tasty burger with special sauce.");
         menu.setImageUrl("http://example.com/burger.jpg");

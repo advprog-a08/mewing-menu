@@ -2,7 +2,7 @@ package id.ac.ui.cs.advprog.mewingmenu.menu.service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class MenuCategoryImpl implements MenuCategoryService {
     }
 
     @Override
-    public Optional<MenuCategory> getMenuCategoryById(UUID id) {
+    public Optional<MenuCategory> getMenuCategoryById(String id) {
         return menuCategoryRepository.findById(id);
     }
 
@@ -32,7 +32,7 @@ public class MenuCategoryImpl implements MenuCategoryService {
     }
 
     @Override
-    public Optional<MenuCategory> updateMenuCategory(UUID id, MenuCategory menuCategory) {
+    public Optional<MenuCategory> updateMenuCategory(String id, MenuCategory menuCategory) {
         return menuCategoryRepository.findById(id)
                 .map(existingMenuCategory -> {
                     existingMenuCategory.setName(menuCategory.getName());
@@ -42,7 +42,7 @@ public class MenuCategoryImpl implements MenuCategoryService {
     }
 
     @Override
-    public void deleteMenuCategory(UUID id) {
+    public void deleteMenuCategory(String id) {
         // Check if theres any menu in this category
         List<Menu> menus = menuCategoryRepository.findById(id).get().getMenus();
         if (menus.isEmpty()) {

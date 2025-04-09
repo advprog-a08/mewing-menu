@@ -1,10 +1,18 @@
 package id.ac.ui.cs.advprog.mewingmenu.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,12 +36,11 @@ public class MenuCategoryServiceTest {
     private MenuCategoryImpl menuCategoryService;
 
     private MenuCategory menuCategory;
-    private UUID categoryId;
+    private String categoryId;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        categoryId = UUID.randomUUID();
         menuCategory = new MenuCategory();
         menuCategory.setId(categoryId);
         menuCategory.setName("Category 1");
