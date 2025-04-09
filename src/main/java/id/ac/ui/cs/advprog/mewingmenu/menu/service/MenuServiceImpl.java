@@ -26,6 +26,10 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public Menu createMenu(Menu menu) {
+        Optional<Menu> existingMenu = menuRepository.findByName(menu.getName());
+        if (existingMenu.isPresent()) {
+            throw new IllegalStateException("Menu with name " + menu.getName() + " already exists");
+        }
         return menuRepository.save(menu);
     }
 

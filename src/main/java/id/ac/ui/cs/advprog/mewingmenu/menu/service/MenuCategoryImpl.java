@@ -28,6 +28,12 @@ public class MenuCategoryImpl implements MenuCategoryService {
 
     @Override
     public MenuCategory createMenuCategory(MenuCategory menuCategory) {
+        Optional<MenuCategory> existingCategory = menuCategoryRepository.findByName(menuCategory.getName());
+
+        if (existingCategory.isPresent()) {
+            throw new IllegalStateException("Menu category with name " + menuCategory.getName() + " already exists");
+        }
+
         return menuCategoryRepository.save(menuCategory);
     }
 
