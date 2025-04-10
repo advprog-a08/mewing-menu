@@ -7,7 +7,7 @@ on:
   pull_request:
 jobs:
     test:
-        name: Run Tests
+        name: Run Gradle Tests
         runs-on: ubuntu-22.04
         steps:
             - name: Checkout Repository
