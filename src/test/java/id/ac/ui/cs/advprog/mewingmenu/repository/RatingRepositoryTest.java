@@ -110,4 +110,59 @@ public class RatingRepositoryTest {
         Optional<Rating> deleted = ratingRepository.findById(ratingId);
         assertThat(deleted).isNotPresent();
     }
+
+    @Test
+    @DisplayName("It should find all Ratings by Menu")
+    public void testFindAllByMenu() {
+        Rating rating1 = new Rating();
+        rating1.setRating(4);
+        rating1.setReview("Lumayan enak");
+        rating1.setUserId(UUID.randomUUID().toString());
+        rating1.setMenu(menu);
+
+        Rating rating2 = new Rating();
+        rating2.setRating(5);
+        rating2.setReview("Sangat enak!");
+        rating2.setUserId(UUID.randomUUID().toString());
+        rating2.setMenu(menu);
+
+        ratingRepository.save(rating1);
+        ratingRepository.save(rating2);
+
+        var ratings = ratingRepository.findAllByMenu(menu);
+        assertThat(ratings).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("It should find Rating by User ID")
+    public void testFindByUserId() {
+        Rating rating = new Rating();
+        rating.setRating(5);
+        rating.setReview("Enak bangeet");
+        rating.setUserId(userId);
+        rating.setMenu(menu);
+
+        ratingRepository.save(rating);
+
+        Optional<Rating> retrieved = ratingRepository.findByUserId(userId);
+        assertThat(retrieved).isPresent();
+        assertThat(retrieved.get().getUserId()).isEqualTo(userId);
+    }
+
+    @Test
+    @DisplayName("It should find Rating by User ID and Menu")
+    public void testFindByUserIdAndMenu() {
+        Rating rating = new Rating();
+        rating.setRating(3);
+        rating.setReview("Not bad");
+        rating.setUserId(userId);
+        rating.setMenu(menu);
+
+        ratingRepository.save(rating);
+
+        Optional<Rating> retrieved = ratingRepository.findByUserIdAndMenu(userId, menu);
+        assertThat(retrieved).isPresent();
+        assertThat(retrieved.get().getUserId()).isEqualTo(userId);
+        assertThat(retrieved.get().getMenu().getId()).isEqualTo(menu.getId());
+    }
 }
