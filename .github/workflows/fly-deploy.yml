@@ -1,16 +1,13 @@
 # See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
 
 name: Fly Deploy
-
 on:
-  workflow_run:
-    workflows: [test]
-    types:
-      - completed
-
+  push:
+    branches:
+      - main
 jobs:
   deploy:
-    name: Deploy app to Fly IO
+    name: Deploy app
     runs-on: ubuntu-latest
     concurrency: deploy-group    # optional: ensure only one action runs at a time
     steps:
