@@ -52,7 +52,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
 
-    testImplementation("com.h2database:h2")
+    implementation("com.h2database:h2")
 }
 
 tasks.withType<Test> {
