@@ -39,12 +39,20 @@ public class MenuCategoryImpl implements MenuCategoryService {
 
     @Override
     public Optional<MenuCategory> updateMenuCategory(String id, MenuCategory menuCategory) {
+        Optional<MenuCategory> existingCategory = menuCategoryRepository.findByName(menuCategory.getName());
+        if (existingCategory.isPresent() && !existingCategory.get().getId().equals(id)) {
+            throw new IllegalStateException("Menu category with name " + menuCategory.getName() + " already exists");
+        }
+
         return menuCategoryRepository.findById(id)
-                .map(existingMenuCategory -> {
-                    existingMenuCategory.setName(menuCategory.getName());
-                    existingMenuCategory.setDescription(menuCategory.getDescription());
-                    return menuCategoryRepository.save(existingMenuCategory);
-                });
+            .map(existingMenuCategory -> {
+                if (!existingMenuCategory.getName().equals(menuCategory.getName()) && existingCategory.isPresent()) {
+                throw new IllegalStateException("Menu category with name " + menuCategory.getName() + " already exists");
+                }
+                existingMenuCategory.setName(menuCategory.getName());
+                existingMenuCategory.setDescription(menuCategory.getDescription());
+                return menuCategoryRepository.save(existingMenuCategory);
+            });
     }
 
     @Override
