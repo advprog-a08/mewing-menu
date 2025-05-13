@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,7 +30,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @ToString
 public class Menu {
-    
+
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
@@ -57,5 +59,6 @@ public class Menu {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonBackReference
     private MenuCategory category;
 }

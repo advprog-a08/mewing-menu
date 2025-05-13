@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for mewing-menu on 2025-04-09T15:15:49+08:00
+# fly.toml app configuration file generated for a08-mewing-menu on 2025-04-11T20:03:44+07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'mewing-menu'
+app = 'a08-mewing-menu'
 primary_region = 'sin'
 
 [build]

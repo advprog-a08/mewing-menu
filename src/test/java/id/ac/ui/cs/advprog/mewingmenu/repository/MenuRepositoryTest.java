@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.MenuCategory;
@@ -18,7 +19,8 @@ import id.ac.ui.cs.advprog.mewingmenu.menu.repository.MenuCategoryRepository;
 import id.ac.ui.cs.advprog.mewingmenu.menu.repository.MenuRepository;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 public class MenuRepositoryTest {
 
     @Autowired
@@ -28,7 +30,6 @@ public class MenuRepositoryTest {
     private MenuCategoryRepository menuCategoryRepository;
 
     private MenuCategory category;
-
 
     @BeforeEach
     public void setUp() {
