@@ -32,8 +32,8 @@ public class RatingServiceTest {
     private Rating rating;
     private Rating rating2;
     private Rating rating3;
-    private String userId1;
-    private String userId2;
+    private String sessionId1;
+    private String sessionId2;
     private Menu menu1;
     private Menu menu2;
 
@@ -51,31 +51,31 @@ public class RatingServiceTest {
         menu1 = createValidMenu("Bakso");
         menu2 = createValidMenu("Mie Ayang");
 
-        userId1 = UUID.randomUUID().toString();
-        userId2 = UUID.randomUUID().toString();
+        sessionId1 = UUID.randomUUID().toString();
+        sessionId2 = UUID.randomUUID().toString();
 
         rating = new Rating();
         rating.setRating(3);
         rating.setReview("Mid");
-        rating.setUserId(userId1);
+        rating.setSessionId(sessionId1);
         rating.setMenu(menu1);
 
         rating2 = new Rating();
         rating2.setRating(5);
         rating2.setReview("Top tier");
-        rating2.setUserId(userId2);
+        rating2.setSessionId(sessionId2);
         rating2.setMenu(menu1);
 
         rating3 = new Rating();
         rating3.setRating(1);
         rating3.setReview("Zonk");
-        rating3.setUserId(userId2);
+        rating3.setSessionId(sessionId2);
         rating3.setMenu(menu2);
     }
 
     @Test
     void testUserCanSuccessfullyAddRating() {
-        when(ratingRepository.findByUserIdAndMenu(userId1, menu1))
+        when(ratingRepository.findByUserIdAndMenu(sessionId1, menu1))
                 .thenReturn(Optional.empty());
 
         when(ratingRepository.save(rating)).thenReturn(rating);
@@ -86,22 +86,22 @@ public class RatingServiceTest {
         assertEquals(rating, result);
         assertEquals(3, result.getRating());
         assertEquals("Mid", result.getReview());
-        assertEquals(userId1, result.getUserId());
+        assertEquals(sessionId1, result.getSessionId());
         assertEquals(menu1, result.getMenu());
 
-        verify(ratingRepository, times(1)).findByUserIdAndMenu(userId1, menu1);
+        verify(ratingRepository, times(1)).findByUserIdAndMenu(sessionId1, menu1);
         verify(ratingRepository, times(1)).save(rating);
     }
 
     @Test
     void testUserCannotAddDuplicateRatingToSameMenu() {
-        when(ratingRepository.findByUserIdAndMenu(userId1, menu1))
+        when(ratingRepository.findByUserIdAndMenu(sessionId1, menu1))
                 .thenReturn(Optional.of(rating));
 
         Rating duplicateRating = new Rating();
         duplicateRating.setRating(4);
         duplicateRating.setReview("Pretty good");
-        duplicateRating.setUserId(userId1);
+        duplicateRating.setSessionId(sessionId1);
         duplicateRating.setMenu(menu1);
 
         Exception exception = assertThrows(IllegalStateException.class, () -> {
@@ -122,7 +122,7 @@ public class RatingServiceTest {
 
         assertTrue(result.isPresent());
         assertEquals(ratingId, result.get().getId());
-        assertEquals(userId1, result.get().getUserId());
+        assertEquals(sessionId1, result.get().getSessionId());
         assertEquals(menu1, result.get().getMenu());
         verify(ratingRepository, times(1)).findById(ratingId);
     }
@@ -159,7 +159,7 @@ public class RatingServiceTest {
 
         Rating existingRating = new Rating();
         existingRating.setId(ratingId);
-        existingRating.setUserId(userId);
+        existingRating.setSessionId(userId);
 
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(existingRating));
 
@@ -175,7 +175,7 @@ public class RatingServiceTest {
 
         Rating existingRating = new Rating();
         existingRating.setId(ratingId);
-        existingRating.setUserId(differentUserId);
+        existingRating.setSessionId(differentUserId);
 
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(existingRating));
 
@@ -190,11 +190,11 @@ public class RatingServiceTest {
     @Test
     void testUpdateRatingByOwnerSuccess() {
         String ratingId = UUID.randomUUID().toString();
-        String userId = userId1;
+        String userId = sessionId1;
 
         Rating existingRating = new Rating();
         existingRating.setId(ratingId);
-        existingRating.setUserId(userId);
+        existingRating.setSessionId(userId);
         existingRating.setMenu(menu1);
         existingRating.setRating(3);
         existingRating.setReview("Mid");
@@ -217,12 +217,12 @@ public class RatingServiceTest {
     @Test
     void testUpdateRatingByNonOwnerThrowsException() {
         String ratingId = UUID.randomUUID().toString();
-        String actualOwnerId = userId1;
-        String attackerUserId = userId2;
+        String actualOwnerId = sessionId1;
+        String attackerUserId = sessionId2;
 
         Rating existingRating = new Rating();
         existingRating.setId(ratingId);
-        existingRating.setUserId(actualOwnerId);
+        existingRating.setSessionId(actualOwnerId);
         existingRating.setMenu(menu1);
         existingRating.setRating(3);
         existingRating.setReview("Mid");
