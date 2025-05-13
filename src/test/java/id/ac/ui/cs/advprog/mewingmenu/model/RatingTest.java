@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Set;
+import java.util.UUID;
 
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +32,7 @@ public class RatingTest {
 
     private static Rating createValidRating() {
         Rating rating = new Rating();
-        rating.setUserId("8efedadb-bd8a-4b1c-901c-05e344047142");
+        rating.setSessionId(UUID.fromString("8efedadb-bd8a-4b1c-901c-05e344047142"));
         rating.setMenu(createValidMenu());
         rating.setRating(5);
         rating.setReview("Mantap banget");
