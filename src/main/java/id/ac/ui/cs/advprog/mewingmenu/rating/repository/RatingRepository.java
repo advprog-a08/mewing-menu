@@ -12,6 +12,6 @@ import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
 @Repository
 public interface RatingRepository extends JpaRepository<Rating, String> {
     List<Rating> findAllByMenu(Menu menu);
-    Optional<Rating> findByUserId(String userId);
-    Optional<Rating> findByUserIdAndMenu(String userId, Menu menu);
+    Optional<Rating> findBySessionId(String sessionId);
+    Optional<Rating> findBySessionIdAndMenu(String sessionId, Menu menu);
 }
