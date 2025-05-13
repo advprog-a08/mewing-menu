@@ -75,7 +75,7 @@ public class RatingServiceTest {
 
     @Test
     void testUserCanSuccessfullyAddRating() {
-        when(ratingRepository.findByUserIdAndMenu(sessionId1, menu1))
+        when(ratingRepository.findBySessionIdAndMenu(sessionId1, menu1))
                 .thenReturn(Optional.empty());
 
         when(ratingRepository.save(rating)).thenReturn(rating);
@@ -89,13 +89,13 @@ public class RatingServiceTest {
         assertEquals(sessionId1, result.getSessionId());
         assertEquals(menu1, result.getMenu());
 
-        verify(ratingRepository, times(1)).findByUserIdAndMenu(sessionId1, menu1);
+        verify(ratingRepository, times(1)).findBySessionIdAndMenu(sessionId1, menu1);
         verify(ratingRepository, times(1)).save(rating);
     }
 
     @Test
     void testUserCannotAddDuplicateRatingToSameMenu() {
-        when(ratingRepository.findByUserIdAndMenu(sessionId1, menu1))
+        when(ratingRepository.findBySessionIdAndMenu(sessionId1, menu1))
                 .thenReturn(Optional.of(rating));
 
         Rating duplicateRating = new Rating();

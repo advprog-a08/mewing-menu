@@ -144,7 +144,7 @@ public class RatingRepositoryTest {
 
         ratingRepository.save(rating);
 
-        Optional<Rating> retrieved = ratingRepository.findByUserId(sessionId);
+        Optional<Rating> retrieved = ratingRepository.findBySessionId(sessionId);
         assertThat(retrieved).isPresent();
         assertThat(retrieved.get().getSessionId()).isEqualTo(sessionId);
     }
@@ -160,7 +160,7 @@ public class RatingRepositoryTest {
 
         ratingRepository.save(rating);
 
-        Optional<Rating> retrieved = ratingRepository.findByUserIdAndMenu(sessionId, menu);
+        Optional<Rating> retrieved = ratingRepository.findBySessionIdAndMenu(sessionId, menu);
         assertThat(retrieved).isPresent();
         assertThat(retrieved.get().getSessionId()).isEqualTo(sessionId);
         assertThat(retrieved.get().getMenu().getId()).isEqualTo(menu.getId());
