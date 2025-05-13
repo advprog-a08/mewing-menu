@@ -33,9 +33,9 @@ public class Rating {
     @JoinColumn(name = "menu_id", referencedColumnName = "id", nullable = false)
     private Menu menu;
 
-    @NotBlank(message = "User Id can't be empty")
+    @NotBlank(message = "Session Id can't be empty")
     @Column(columnDefinition = "VARCHAR(36)")
-    private String userId;
+    private String sessionId;
 
     @NotNull(message = "Rating can't be empty")
     @Min(value=1, message= "Rating must be at least 1")
