@@ -32,7 +32,7 @@ public class RatingTest {
 
     private static Rating createValidRating() {
         Rating rating = new Rating();
-        rating.setSessionId(UUID.fromString("8efedadb-bd8a-4b1c-901c-05e344047142"));
+        rating.setSessionId("8efedadb-bd8a-4b1c-901c-05e344047142");
         rating.setMenu(createValidMenu());
         rating.setRating(5);
         rating.setReview("Mantap banget");
