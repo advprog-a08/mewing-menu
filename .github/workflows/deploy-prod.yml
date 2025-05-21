@@ -41,5 +41,5 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
                 #   Reroll Deployment
-                kubectl rollout restart deployment mewing-menu -n default
+                sudo kubectl rollout restart deployment mewing-menu -n default
           EOF
