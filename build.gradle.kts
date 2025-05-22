@@ -11,7 +11,7 @@ plugins {
 group = "id.ac.ui.cs.advprog"
 version = "0.0.1-SNAPSHOT"
 
-val grpcVersion = "1.64.0"
+val grpcVersion = "1.64.0:linux-x86_64"
 val protobufVersion = "3.25.1"
 val springGrpcVersion = "0.4.0"
 
