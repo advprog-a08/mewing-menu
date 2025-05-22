@@ -51,6 +51,11 @@ public class Menu {
     @Column(nullable = false)
     private String imageUrl;
 
+    @DecimalMin(value = "0", inclusive = true, message = "Quantity must be non-negative")
+    @DecimalMax(value = "1000", inclusive = true, message = "Quantity must be less than or equal to 1000")
+    @Column(nullable = true)
+    private BigDecimal quantity;
+
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.0", inclusive = true, message = "Price must be non-negative")
     @DecimalMax(value = "1000000.0", inclusive = true, message = "Price must be less than or equal to 1,000,000")
