@@ -30,15 +30,16 @@ public class MenuCategory {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(columnDefinition = "VARCHAR(36)")
+    @Column(name = "id", columnDefinition = "VARCHAR(36)")
     private String id;
 
     @NotBlank(message = "Name is required")
     @Size(min = 5, message = "Name must be at least 5 characters")
-    @Column(nullable = false, unique = true)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Size(max = 255, message = "Description can't exceed 255 characters")
+    @Column(name = "description")
     private String description;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
