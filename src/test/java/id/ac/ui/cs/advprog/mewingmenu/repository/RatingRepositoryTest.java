@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.mewingmenu.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,6 +17,8 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
+import id.ac.ui.cs.advprog.mewingmenu.menu.repository.MenuRepository;
+
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -28,8 +31,12 @@ public class RatingRepositoryTest {
     @Autowired
     private RatingRepository ratingRepository;
 
+    @Autowired
+    private MenuRepository menuRepository;
+
     private String sessionId;
     private Menu menu;
+    private Menu menu2;
 
 
     private static Menu createValidMenu() {
@@ -41,6 +48,16 @@ public class RatingRepositoryTest {
         return menu;
     }
 
+    private static Menu createAnotherValidMenu() {
+        Menu menu = new Menu();
+        menu.setName("Delicious Kebab");
+        menu.setDescription("A super tasty kebab with special sauce.");
+        menu.setImageUrl("http://example.com/kebab.jpg");
+        menu.setPrice(BigDecimal.valueOf(45000));
+        return menu;
+    }
+
+
     @Autowired
     private TestEntityManager entityManager;
 
@@ -49,6 +66,7 @@ public class RatingRepositoryTest {
         ratingRepository.deleteAll();
         sessionId = UUID.randomUUID().toString();
         this.menu = createValidMenu();
+        this.menu2 = createAnotherValidMenu();
         entityManager.persist(menu);
         entityManager.flush();
     }
@@ -135,23 +153,34 @@ public class RatingRepositoryTest {
     }
 
     @Test
-    @DisplayName("It should find Rating by User ID")
+    @DisplayName("It should find all Rating by Session ID")
     public void testFindByUserId() {
+        Menu savedMenu = menuRepository.save(menu);
+        Menu savedMenu2 = menuRepository.save(menu2);
+
         Rating rating = new Rating();
         rating.setRating(5);
         rating.setReview("Enak bangeet");
         rating.setSessionId(sessionId);
-        rating.setMenu(menu);
+        rating.setMenu(savedMenu);
+
+        Rating rating2 = new Rating();
+        rating2.setRating(3);
+        rating2.setReview("Menurut aku sih mid");
+        rating2.setSessionId(sessionId);
+        rating2.setMenu(savedMenu2);
 
         ratingRepository.save(rating);
+        ratingRepository.save(rating2);
 
-        Optional<Rating> retrieved = ratingRepository.findBySessionId(sessionId);
-        assertThat(retrieved).isPresent();
-        assertThat(retrieved.get().getSessionId()).isEqualTo(sessionId);
+        List<Rating> ratings = ratingRepository.findAllBySessionId(sessionId);
+        assertThat(ratings).hasSize(2);
+        assertThat(ratings.get(0).getSessionId()).isEqualTo(sessionId);
+        assertThat(ratings.get(1).getSessionId()).isEqualTo(sessionId);
     }
 
     @Test
-    @DisplayName("It should find Rating by User ID and Menu")
+    @DisplayName("It should find Rating by Session ID and Menu")
     public void testFindByUserIdAndMenu() {
         Rating rating = new Rating();
         rating.setRating(3);
