@@ -1,6 +1,9 @@
 package id.ac.ui.cs.advprog.mewingmenu.rating.controller;
 
+import id.ac.ui.cs.advprog.mewingmenu.annotation.AuthenticatedTableSession;
+import id.ac.ui.cs.advprog.mewingmenu.annotation.RequireTableSession;
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
+import id.ac.ui.cs.advprog.mewingmenu.model.TableSession;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,16 +45,18 @@ public class RatingController {
     }
 
     @DeleteMapping("/{ratingId}")
-    public ResponseEntity<Void> deleteRating(@PathVariable String ratingId, @RequestParam String userId) {
-        ratingService.deleteRatingById(ratingId, userId);
+    @RequireTableSession
+    public ResponseEntity<Void> deleteRating(@PathVariable String ratingId, @AuthenticatedTableSession TableSession tableSession) {
+        ratingService.deleteRatingById(ratingId, tableSession.toString());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{ratingId}")
+    @RequireTableSession
     public ResponseEntity<Rating> updateRating(@PathVariable String ratingId,
                                                @RequestBody Rating updatedRating,
-                                               @RequestParam String userId) {
-        Rating result = ratingService.updateRating(ratingId, updatedRating, userId);
+                                               @AuthenticatedTableSession TableSession tableSession) {
+        Rating result = ratingService.updateRating(ratingId, updatedRating, tableSession.toString());
         return ResponseEntity.ok(result);
     }
 }
