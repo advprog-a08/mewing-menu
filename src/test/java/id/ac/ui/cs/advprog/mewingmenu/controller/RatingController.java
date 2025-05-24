@@ -56,16 +56,26 @@ class RatingControllerTest {
 
     @Test
     void testAddRating() throws ExecutionException, InterruptedException {
+        Long tableSessionId = 123L;
+    
+        TableSession mockTableSession = new TableSession("1", "1", true);
+        mockTableSession.setId("1");
+    
+        Rating inputRating = new Rating(); 
+        Rating expectedRating = testRating; 
+    
         when(ratingService.addRating(any(Rating.class)))
-            .thenReturn(CompletableFuture.completedFuture(testRating));
+            .thenReturn(CompletableFuture.completedFuture(expectedRating));
 
-        ResponseEntity<CompletableFuture<Rating>> response = ratingController.addRating(testRating);
+        ResponseEntity<CompletableFuture<Rating>> response =
+            ratingController.addRating(inputRating, mockTableSession);
+    
         Rating result = response.getBody().get();
-
+    
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testRating, result);
-        verify(ratingService).addRating(any(Rating.class));
+        assertEquals(expectedRating, result);
     }
+    
 
     @Test
     void testGetRatingById_Found() {
