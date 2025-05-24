@@ -262,4 +262,53 @@ class MenuControllerTest {
         
         mockMvc.perform(delete("/api/menus/1")).andExpect(status().isNotFound());
     }
+
+    @Test
+    void reduceQuantity_ShouldReturnUpdatedMenu_WhenMenuExists() throws Exception {
+        String menuId = "1";
+        BigDecimal quantityToReduce = new BigDecimal("3");
+
+        Menu updatedMenu = new Menu();
+        updatedMenu.setId(testMenu.getId());
+        updatedMenu.setName(testMenu.getName());
+        updatedMenu.setDescription(testMenu.getDescription());
+        updatedMenu.setPrice(testMenu.getPrice());
+        updatedMenu.setCategory(testMenu.getCategory());
+        updatedMenu.setQuantity(new BigDecimal("7"));
+
+        when(menuService.reduceQuantity(menuId, quantityToReduce))
+                .thenReturn(Optional.of(updatedMenu));
+
+        mockMvc.perform(put("/api/menus/reduce/{id}", menuId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(quantityToReduce)))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Menu updated successfully."))
+                .andExpect(jsonPath("$.data.id").value(menuId))
+                .andExpect(jsonPath("$.data.name").value(testMenu.getName()))
+                .andExpect(jsonPath("$.data.quantity").value(7));
+
+        verify(menuService, times(1)).reduceQuantity(menuId, quantityToReduce);
+    }
+
+    @Test
+    void reduceQuantity_ShouldReturnNotFound_WhenMenuDoesNotExist() throws Exception {
+        String menuId = "999";
+        BigDecimal quantityToReduce = new BigDecimal("3");
+
+        when(menuService.reduceQuantity(menuId, quantityToReduce))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/menus/reduce/{id}", menuId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(quantityToReduce)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("Menu not found for update with ID: " + menuId));
+
+        verify(menuService, times(1)).reduceQuantity(menuId, quantityToReduce);
+    }
 }
