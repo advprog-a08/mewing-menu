@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.mewingmenu.menu.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +42,19 @@ public class MenuServiceImpl implements MenuService {
                     existingMenu.setDescription(menu.getDescription());
                     existingMenu.setPrice(menu.getPrice());
                     existingMenu.setCategory(menu.getCategory());
+                    return menuRepository.save(existingMenu);
+                });
+    }
+
+    @Override
+    public Optional<Menu> reduceQuantity(String id, BigDecimal quantity) {
+        if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
+
+        return menuRepository.findById(id)
+                .map(existingMenu -> {
+                    existingMenu.setQuantity(BigDecimal.valueOf(existingMenu.getQuantity().intValue() - quantity.intValue()));
                     return menuRepository.save(existingMenu);
                 });
     }
