@@ -27,10 +27,16 @@ public class RatingController {
     }
 
     @PostMapping
-    public ResponseEntity<CompletableFuture<Rating>> addRating(@RequestBody Rating rating) {
+    @RequireTableSession
+    public ResponseEntity<CompletableFuture<Rating>> addRating(
+            @RequestBody Rating rating,
+            @AuthenticatedTableSession TableSession tableSession) {
+        rating.setSessionId(tableSession.getId());
+    
         CompletableFuture<Rating> savedRating = ratingService.addRating(rating);
         return ResponseEntity.ok(savedRating);
     }
+    
 
     @GetMapping("/{ratingId}")
     public ResponseEntity<Rating> getRatingById(@PathVariable String ratingId) {
