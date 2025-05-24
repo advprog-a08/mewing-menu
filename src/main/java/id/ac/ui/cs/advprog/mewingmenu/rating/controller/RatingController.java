@@ -3,9 +3,10 @@ package id.ac.ui.cs.advprog.mewingmenu.rating.controller;
 import id.ac.ui.cs.advprog.mewingmenu.annotation.AuthenticatedTableSession;
 import id.ac.ui.cs.advprog.mewingmenu.annotation.RequireTableSession;
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
-import id.ac.ui.cs.advprog.mewingmenu.model.TableSession;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingService;
+import table_session.TableSessionOuterClass.TableSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +27,8 @@ public class RatingController {
         this.ratingService = ratingService;
     }
 
-    @PostMapping
     @RequireTableSession
+    @PostMapping
     public ResponseEntity<CompletableFuture<Rating>> addRating(
             @RequestBody Rating rating,
             @AuthenticatedTableSession TableSession tableSession) {
