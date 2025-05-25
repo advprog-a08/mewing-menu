@@ -1,12 +1,15 @@
 package id.ac.ui.cs.advprog.mewingmenu.rating.service;
 
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
+import id.ac.ui.cs.advprog.mewingmenu.rating.dto.RatingDto;
+import id.ac.ui.cs.advprog.mewingmenu.rating.mapper.RatingMapper;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.repository.RatingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -25,26 +28,45 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Async
-    public CompletableFuture<Rating> addRating(Rating rating) {
+    public CompletableFuture<RatingDto> addRating(Rating rating) {
         return CompletableFuture.supplyAsync(() -> {
             Optional<Rating> existingRating = ratingRepository.findBySessionIdAndMenu(rating.getSessionId(), rating.getMenu());
             if (existingRating.isPresent()) {
                 throw new IllegalStateException("User has already reviewed this menu");
             }
-            return ratingRepository.save(rating);
+            Rating savedRating = ratingRepository.save(rating);
+            return RatingMapper.toDTO(savedRating);
         });
     }
 
     @Override
-    public Optional<Rating> findById(String ratingId) {
-        return ratingRepository.findById(ratingId);
+    public Optional<RatingDto> findById(String ratingId) {
+        Optional<Rating> rating = ratingRepository.findById(ratingId);
+        return rating.map(RatingMapper::toDTO);
+    }
+    
+    @Override
+    @Async
+    public CompletableFuture<List<RatingDto>> getAllRatingsByMenu(Menu menu) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Rating> ratings = ratingRepository.findAllByMenu(menu);
+            return ratings.stream()
+                          .map(RatingMapper::toDTO)
+                          .toList();
+        });
     }
 
     @Override
     @Async
-    public CompletableFuture<List<Rating>> getAllRatingsByMenu(Menu menu) {
-        return CompletableFuture.supplyAsync(() -> ratingRepository.findAllByMenu(menu));
+    public CompletableFuture<List<RatingDto>> getAll() {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Rating> ratings = ratingRepository.findAll();
+            return ratings.stream()
+                          .map(RatingMapper::toDTO)
+                          .toList();
+        });
     }
+    
 
     @Override
     public void deleteRatingById(String ratingId, String sessionid) {
@@ -63,7 +85,7 @@ public class RatingServiceImpl implements RatingService {
 
     @Override
     @Async
-    public CompletableFuture<Rating> updateRating(String ratingId, Rating updatedRating, String sessionId) {
+    public CompletableFuture<RatingDto> updateRating(String ratingId, Rating updatedRating, String sessionId) {
         return CompletableFuture.supplyAsync(() -> {
             Optional<Rating> ratingOpt = ratingRepository.findById(ratingId);
             if (ratingOpt.isEmpty()) {
@@ -79,22 +101,22 @@ public class RatingServiceImpl implements RatingService {
             existingRating.setRating(updatedRating.getRating());
             existingRating.setReview(updatedRating.getReview());
 
-            return ratingRepository.save(existingRating);
+            Rating savedRating = ratingRepository.save(existingRating);
+            return RatingMapper.toDTO(savedRating);
         });
     }
 
     @Override
-    @Async
-    public CompletableFuture<List<Rating>> getAllRatingsBySession(String id) {
-        return CompletableFuture.supplyAsync(() -> ratingRepository.findAllBySessionId(id));
+    public List<RatingDto> getAllRatingsBySession(String id) {
+        List<Rating> ratings = ratingRepository.findAllBySessionId(id);
+        return ratings.stream()
+                      .map(RatingMapper::toDTO)
+                      .toList();
     }
 
     @Override
-    public Optional<Rating> getRatingByMenuAndSession(Menu menu, String id) {
-        Optional<Rating> ratingOpt = ratingRepository.findById(id);
-        if (ratingOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Rating not found");
-        }
-        return ratingOpt;
+    public Optional<RatingDto> getRatingByMenuAndSession(Menu menu, String id) {
+        Optional<Rating> ratingOpt = ratingRepository.findBySessionIdAndMenu(id, menu);
+        return ratingOpt.map(RatingMapper::toDTO);
     }
 }
