@@ -2,6 +2,8 @@ package id.ac.ui.cs.advprog.mewingmenu.service;
 
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
 import id.ac.ui.cs.advprog.mewingmenu.menu.repository.MenuRepository;
+import id.ac.ui.cs.advprog.mewingmenu.rating.dto.RatingDto;
+import id.ac.ui.cs.advprog.mewingmenu.rating.mapper.RatingMapper;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.repository.RatingRepository;
 import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingServiceImpl;
@@ -11,8 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -41,6 +41,8 @@ public class RatingServiceTest {
     private Rating rating;
     private Rating rating2;
     private Rating rating3;
+    private RatingDto expectedDto1;
+    private RatingDto expectedDto2;
     private String sessionId1;
     private String sessionId2;
     private Menu menu1;
@@ -80,6 +82,9 @@ public class RatingServiceTest {
         rating3.setReview("Zonk");
         rating3.setSessionId(sessionId2);
         rating3.setMenu(menu2);
+
+        expectedDto1 = RatingMapper.toDTO(rating);
+        expectedDto2 = RatingMapper.toDTO(rating2);
     }
 
     @Test
@@ -89,15 +94,14 @@ public class RatingServiceTest {
 
         when(ratingRepository.save(rating)).thenReturn(rating);
 
-        CompletableFuture<Rating> resultFuture = ratingService.addRating(rating);
-        Rating result = resultFuture.get(); 
+        CompletableFuture<RatingDto> resultFuture = ratingService.addRating(rating);
+        RatingDto result = resultFuture.get(); 
 
         assertNotNull(result);
-        assertEquals(rating, result);
         assertEquals(3, result.getRating());
         assertEquals("Mid", result.getReview());
         assertEquals(sessionId1, result.getSessionId());
-        assertEquals(menu1, result.getMenu());
+        assertEquals(menu1.getId(), result.getMenuId());
 
         verify(ratingRepository, times(1)).findBySessionIdAndMenu(sessionId1, menu1);
         verify(ratingRepository, times(1)).save(rating);
@@ -114,7 +118,7 @@ public class RatingServiceTest {
         duplicateRating.setSessionId(sessionId1);
         duplicateRating.setMenu(menu1);
 
-        CompletableFuture<Rating> resultFuture = ratingService.addRating(duplicateRating);
+        CompletableFuture<RatingDto> resultFuture = ratingService.addRating(duplicateRating);
 
         ExecutionException exception = assertThrows(ExecutionException.class, () -> {
             resultFuture.get(); 
@@ -131,12 +135,12 @@ public class RatingServiceTest {
 
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(rating));
 
-        Optional<Rating> result = ratingService.findById(ratingId);
+        Optional<RatingDto> result = ratingService.findById(ratingId);
 
         assertTrue(result.isPresent());
         assertEquals(ratingId, result.get().getId());
         assertEquals(sessionId1, result.get().getSessionId());
-        assertEquals(menu1, result.get().getMenu());
+        assertEquals(menu1.getId(), result.get().getMenuId());
         verify(ratingRepository, times(1)).findById(ratingId);
     }
 
@@ -146,7 +150,7 @@ public class RatingServiceTest {
 
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.empty());
 
-        Optional<Rating> result = ratingService.findById(ratingId);
+        Optional<RatingDto> result = ratingService.findById(ratingId);
 
         assertTrue(result.isEmpty());
         verify(ratingRepository, times(1)).findById(ratingId);
@@ -156,14 +160,46 @@ public class RatingServiceTest {
     void testGetAllRatingsByMenu() throws ExecutionException, InterruptedException {
         when(ratingRepository.findAllByMenu(menu1)).thenReturn(List.of(rating, rating2));
 
-        CompletableFuture<List<Rating>> resultFuture = ratingService.getAllRatingsByMenu(menu1);
-        List<Rating> result = resultFuture.get();
+        CompletableFuture<List<RatingDto>> resultFuture = ratingService.getAllRatingsByMenu(menu1);
+        List<RatingDto> result = resultFuture.get();
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertTrue(result.contains(rating));
-        assertTrue(result.contains(rating2));
+        
+        RatingDto firstResult = result.get(0);
+        RatingDto secondResult = result.get(1);
+        
+        assertTrue((firstResult.getRating() == 3 && "Mid".equals(firstResult.getReview()) && sessionId1.equals(firstResult.getSessionId())) ||
+                   (firstResult.getRating() == 5 && "Top tier".equals(firstResult.getReview()) && sessionId2.equals(firstResult.getSessionId())));
+        
+        assertTrue((secondResult.getRating() == 3 && "Mid".equals(secondResult.getReview()) && sessionId1.equals(secondResult.getSessionId())) ||
+                   (secondResult.getRating() == 5 && "Top tier".equals(secondResult.getReview()) && sessionId2.equals(secondResult.getSessionId())));
+        
         verify(ratingRepository, times(1)).findAllByMenu(menu1);
+    }
+
+    @Test
+    void testGetAllRatings() throws ExecutionException, InterruptedException {
+        when(ratingRepository.findAll()).thenReturn(List.of(rating, rating2, rating3));
+
+        CompletableFuture<List<RatingDto>> resultFuture = ratingService.getAll();
+        List<RatingDto> result = resultFuture.get();
+
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        
+        boolean hasRating1 = result.stream().anyMatch(dto -> 
+            dto.getRating() == 3 && "Mid".equals(dto.getReview()) && sessionId1.equals(dto.getSessionId()));
+        boolean hasRating2 = result.stream().anyMatch(dto -> 
+            dto.getRating() == 5 && "Top tier".equals(dto.getReview()) && sessionId2.equals(dto.getSessionId()));
+        boolean hasRating3 = result.stream().anyMatch(dto -> 
+            dto.getRating() == 1 && "Zonk".equals(dto.getReview()) && sessionId2.equals(dto.getSessionId()));
+            
+        assertTrue(hasRating1, "Should contain rating1");
+        assertTrue(hasRating2, "Should contain rating2");
+        assertTrue(hasRating3, "Should contain rating3");
+        
+        verify(ratingRepository, times(1)).findAll();
     }
 
     @Test
@@ -202,6 +238,21 @@ public class RatingServiceTest {
     }
 
     @Test
+    void testDeleteRatingByIdWhenRatingNotFound() {
+        String ratingId = UUID.randomUUID().toString();
+        String userId = UUID.randomUUID().toString();
+
+        when(ratingRepository.findById(ratingId)).thenReturn(Optional.empty());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
+                ratingService.deleteRatingById(ratingId, userId)
+        );
+
+        assertEquals("Rating not found", exception.getMessage());
+        verify(ratingRepository, never()).deleteById(ratingId);
+    }
+
+    @Test
     void testUpdateRatingByOwnerSuccess() throws ExecutionException, InterruptedException {
         String ratingId = UUID.randomUUID().toString();
         String userId = sessionId1;
@@ -220,8 +271,8 @@ public class RatingServiceTest {
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(existingRating));
         when(ratingRepository.save(existingRating)).thenReturn(existingRating);
 
-        CompletableFuture<Rating> resultFuture = ratingService.updateRating(ratingId, updatedData, userId);
-        Rating result = resultFuture.get();
+        CompletableFuture<RatingDto> resultFuture = ratingService.updateRating(ratingId, updatedData, userId);
+        RatingDto result = resultFuture.get();
 
         assertNotNull(result);
         assertEquals(5, result.getRating());
@@ -248,7 +299,7 @@ public class RatingServiceTest {
 
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(existingRating));
 
-        CompletableFuture<Rating> resultFuture = ratingService.updateRating(ratingId, updatedData, attackerUserId);
+        CompletableFuture<RatingDto> resultFuture = ratingService.updateRating(ratingId, updatedData, attackerUserId);
 
         ExecutionException ex = assertThrows(ExecutionException.class, () ->
                 resultFuture.get() 
@@ -260,18 +311,42 @@ public class RatingServiceTest {
     }
 
     @Test
+    void testUpdateRatingWhenNotFound() {
+        String ratingId = UUID.randomUUID().toString();
+        String userId = sessionId1;
+
+        Rating updatedData = new Rating();
+        updatedData.setRating(5);
+        updatedData.setReview("Updated review");
+
+        when(ratingRepository.findById(ratingId)).thenReturn(Optional.empty());
+
+        CompletableFuture<RatingDto> resultFuture = ratingService.updateRating(ratingId, updatedData, userId);
+
+        ExecutionException ex = assertThrows(ExecutionException.class, () ->
+                resultFuture.get()
+        );
+
+        assertTrue(ex.getCause() instanceof IllegalStateException);
+        assertEquals("Rating not found", ex.getCause().getMessage());
+        verify(ratingRepository, never()).save(any());
+    }
+
+    @Test
     void testAddRatingAsyncBehavior() {
         when(ratingRepository.findBySessionIdAndMenu(sessionId1, menu1))
                 .thenReturn(Optional.empty());
         when(ratingRepository.save(rating)).thenReturn(rating);
 
-        CompletableFuture<Rating> resultFuture = ratingService.addRating(rating);
+        CompletableFuture<RatingDto> resultFuture = ratingService.addRating(rating);
 
         assertNotNull(resultFuture);
 
         assertDoesNotThrow(() -> {
-            Rating result = resultFuture.get();
-            assertEquals(rating, result);
+            RatingDto result = resultFuture.get();
+            assertEquals(3, result.getRating());
+            assertEquals("Mid", result.getReview());
+            assertEquals(sessionId1, result.getSessionId());
         });
     }
 
@@ -279,12 +354,12 @@ public class RatingServiceTest {
     void testGetAllRatingsByMenuAsyncBehavior() {
         when(ratingRepository.findAllByMenu(menu1)).thenReturn(List.of(rating, rating2));
 
-        CompletableFuture<List<Rating>> resultFuture = ratingService.getAllRatingsByMenu(menu1);
+        CompletableFuture<List<RatingDto>> resultFuture = ratingService.getAllRatingsByMenu(menu1);
 
         assertNotNull(resultFuture);
 
         assertDoesNotThrow(() -> {
-            List<Rating> result = resultFuture.get();
+            List<RatingDto> result = resultFuture.get();
             assertEquals(2, result.size());
         });
     }
@@ -308,11 +383,11 @@ public class RatingServiceTest {
         when(ratingRepository.findById(ratingId)).thenReturn(Optional.of(existingRating));
         when(ratingRepository.save(existingRating)).thenReturn(existingRating);
 
-        CompletableFuture<Rating> resultFuture = ratingService.updateRating(ratingId, updatedData, userId);
+        CompletableFuture<RatingDto> resultFuture = ratingService.updateRating(ratingId, updatedData, userId);
 
         assertNotNull(resultFuture);
         assertDoesNotThrow(() -> {
-            Rating result = resultFuture.get();
+            RatingDto result = resultFuture.get();
             assertEquals(5, result.getRating());
         });
     }
@@ -332,12 +407,14 @@ public class RatingServiceTest {
         rating2.setMenu(menu2);
 
         when(ratingRepository.findAllBySessionId(sessionId1))
-            .thenReturn(List.of(rating,rating2));
-        List<Rating> ratings = ratingService.getAllRatingsBySession(sessionId1).join();
+            .thenReturn(List.of(rating, rating2));
+        
+        List<RatingDto> ratings = ratingService.getAllRatingsBySession(sessionId1);
 
         assertThat(ratings).hasSize(2);
         assertThat(ratings.get(0).getSessionId()).isEqualTo(sessionId1);
         assertThat(ratings.get(1).getSessionId()).isEqualTo(sessionId1);
+        verify(ratingRepository, times(1)).findAllBySessionId(sessionId1);
     }
 
     @Test
@@ -348,22 +425,27 @@ public class RatingServiceTest {
         rating.setSessionId(sessionId1);
         rating.setMenu(menu1);
 
-        when(ratingRepository.findById(sessionId1)).thenReturn(Optional.of(rating));
+        when(ratingRepository.findBySessionIdAndMenu(sessionId1, menu1))
+                .thenReturn(Optional.of(rating));
 
-        Optional<Rating> result = ratingService.getRatingByMenuAndSession(menu1, sessionId1);
+        Optional<RatingDto> result = ratingService.getRatingByMenuAndSession(menu1, sessionId1);
 
         assertTrue(result.isPresent());
-        assertEquals(rating, result.get());
+        assertEquals(5, result.get().getRating());
+        assertEquals("Enak bangeet", result.get().getReview());
+        assertEquals(sessionId1, result.get().getSessionId());
+        assertEquals(menu1.getId(), result.get().getMenuId());
+        verify(ratingRepository, times(1)).findBySessionIdAndMenu(sessionId1, menu1);
     }
 
     @Test
     void testGetRatingByMenuAndSessionWhenNotExists() {
-        when(ratingRepository.findById(sessionId1)).thenReturn(Optional.empty());
+        when(ratingRepository.findBySessionIdAndMenu(sessionId1, menu1))
+                .thenReturn(Optional.empty());
 
-        ResponseStatusException exception = assertThrows(ResponseStatusException.class, 
-        () -> ratingService.getRatingByMenuAndSession(menu1, sessionId1)
-        );
+        Optional<RatingDto> result = ratingService.getRatingByMenuAndSession(menu1, sessionId1);
 
-        assertEquals("Rating not found", exception.getReason());
+        assertTrue(result.isEmpty());
+        verify(ratingRepository, times(1)).findBySessionIdAndMenu(sessionId1, menu1);
     }
 }

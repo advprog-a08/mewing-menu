@@ -6,6 +6,8 @@ import java.util.List;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import jakarta.persistence.CascadeType;
@@ -75,5 +77,6 @@ public class Menu {
     private MenuCategory category;
     
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Rating> ratings;
 }

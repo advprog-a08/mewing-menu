@@ -14,6 +14,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "rating")
 @Getter
@@ -32,6 +34,7 @@ public class Rating {
     @NotNull(message = "Menu can't be empty")
     @ManyToOne(optional = false)
     @JoinColumn(name = "menu_id", nullable = false, referencedColumnName = "id") 
+    @JsonBackReference
     private Menu menu;
 
     @NotBlank(message = "Session Id can't be empty")
