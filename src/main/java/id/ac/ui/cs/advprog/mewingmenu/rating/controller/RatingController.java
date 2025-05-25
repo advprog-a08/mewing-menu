@@ -1,9 +1,8 @@
 package id.ac.ui.cs.advprog.mewingmenu.rating.controller;
 
-import id.ac.ui.cs.advprog.mewingmenu.annotation.AuthenticatedTableSession;
 import id.ac.ui.cs.advprog.mewingmenu.annotation.RequireTableSession;
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
-import id.ac.ui.cs.advprog.mewingmenu.model.TableSession;
+import id.ac.ui.cs.advprog.mewingmenu.rating.dto.RatingDto;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,58 +25,133 @@ public class RatingController {
         this.ratingService = ratingService;
     }
 
-    @PostMapping
-    public ResponseEntity<CompletableFuture<Rating>> addRating(@RequestBody Rating rating) {
-        CompletableFuture<Rating> savedRating = ratingService.addRating(rating);
-        return ResponseEntity.ok(savedRating);
+    // Response wrapper class
+    public static class ApiResponse<T> {
+        private boolean success;
+        private String message;
+        private T data;
+
+        public ApiResponse(boolean success, String message, T data) {
+            this.success = success;
+            this.message = message;
+            this.data = data;
+        }
+
+        // Getters and setters
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public T getData() {
+            return data;
+        }
+
+        public void setData(T data) {
+            this.data = data;
+        }
     }
 
+    @PostMapping
+    @RequireTableSession
+    public CompletableFuture<ResponseEntity<ApiResponse<RatingDto>>> addRating(
+            @RequestBody Rating rating,
+            @RequestHeader("X-Session-Id") String sessionId) {
+        rating.setSessionId(sessionId);
+    
+        return ratingService.addRating(rating)
+                .thenApply(ratingDto -> ResponseEntity.ok(
+                    new ApiResponse<>(true, "Rating added successfully.", ratingDto)))
+                .exceptionally(ex -> ResponseEntity.badRequest().body(
+                    new ApiResponse<>(false, ex.getCause().getMessage(), null)));
+    }
+
+    @GetMapping
+    public CompletableFuture<ResponseEntity<ApiResponse<List<RatingDto>>>> getAllRatings() {
+        return ratingService.getAll()
+                .thenApply(ratings -> ResponseEntity.ok(
+                    new ApiResponse<>(true, "Successfully fetched all ratings.", ratings)));
+    }
+    
     @GetMapping("/{ratingId}")
-    public ResponseEntity<Rating> getRatingById(@PathVariable String ratingId) {
+    public ResponseEntity<ApiResponse<RatingDto>> getRatingById(@PathVariable String ratingId) {
         return ratingService.findById(ratingId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(ratingDto -> ResponseEntity.ok(
+                    new ApiResponse<>(true, "Rating found successfully.", ratingDto)))
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new ApiResponse<>(false, "Rating not found.", null)));
     }
 
     @GetMapping("/menu/{menuId}")
-    public ResponseEntity<CompletableFuture<List<Rating>>> getRatingsByMenu(@PathVariable String menuId) {
+    public CompletableFuture<ResponseEntity<ApiResponse<List<RatingDto>>>> getRatingsByMenu(@PathVariable String menuId) {
         Menu menu = new Menu();
         menu.setId(menuId);
-        CompletableFuture<List<Rating>> ratings = ratingService.getAllRatingsByMenu(menu);
-        return ResponseEntity.ok(ratings);
+        return ratingService.getAllRatingsByMenu(menu)
+                .thenApply(ratings -> ResponseEntity.ok(
+                    new ApiResponse<>(true, "Successfully fetched ratings for menu.", ratings)));
     }
 
     @DeleteMapping("/{ratingId}")
     @RequireTableSession
-    public ResponseEntity<Void> deleteRating(@PathVariable String ratingId, @AuthenticatedTableSession TableSession tableSession) {
-        ratingService.deleteRatingById(ratingId, tableSession.toString());
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteRating(@PathVariable String ratingId, @RequestHeader("X-Session-Id") String sessionId) {
+        try {
+            ratingService.deleteRatingById(ratingId, sessionId);
+            return ResponseEntity.ok(new ApiResponse<>(true, "Rating deleted successfully.", null));
+        } catch (IllegalStateException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse<>(false, ex.getMessage(), null));
+        } catch (SecurityException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                new ApiResponse<>(false, ex.getMessage(), null));
+        }
     }
 
     @PutMapping("/{ratingId}")
     @RequireTableSession
-    public ResponseEntity<CompletableFuture<Rating>> updateRating(@PathVariable String ratingId,
+    public CompletableFuture<ResponseEntity<ApiResponse<RatingDto>>> updateRating(@PathVariable String ratingId,
                                                @RequestBody Rating updatedRating,
-                                               @AuthenticatedTableSession TableSession tableSession) {
-        CompletableFuture<Rating> result = ratingService.updateRating(ratingId, updatedRating, tableSession.getId());
-        return ResponseEntity.ok(result);
+                                               @RequestHeader("X-Session-Id") String sessionId) {
+        return ratingService.updateRating(ratingId, updatedRating, sessionId)
+                .thenApply(ratingDto -> ResponseEntity.ok(
+                    new ApiResponse<>(true, "Rating updated successfully.", ratingDto)))
+                .exceptionally(ex -> ResponseEntity.badRequest().body(
+                    new ApiResponse<>(false, ex.getCause().getMessage(), null)));
     }
 
     @GetMapping("/my-ratings")
     @RequireTableSession
-    public ResponseEntity<CompletableFuture<List<Rating>>> getAllBySession(@AuthenticatedTableSession TableSession tableSession) {
-        CompletableFuture<List<Rating>> result = ratingService.getAllRatingsBySession(tableSession.getId());
-        return ResponseEntity.ok(result);
+    public ResponseEntity<ApiResponse<List<RatingDto>>> getAllBySession(
+            @RequestHeader("X-Session-Id") String sessionId) {
+        List<RatingDto> ratings = ratingService.getAllRatingsBySession(sessionId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Successfully fetched user ratings.", ratings));
     }
-
+    
     @GetMapping("/menu/{menuId}/me")
-    public ResponseEntity<Rating> getRatingByMenuAndSession(@PathVariable String menuId,
-            @AuthenticatedTableSession TableSession tableSession) {
+    @RequireTableSession
+    public ResponseEntity<ApiResponse<RatingDto>> getRatingByMenuAndSession(@PathVariable String menuId,
+            @RequestHeader("X-Session-Id") String sessionId) {
         Menu menu = new Menu();
         menu.setId(menuId);
-        Rating rating = ratingService.getRatingByMenuAndSession(menu, tableSession.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "RATING NOT FOUND"));
         
-        return ResponseEntity.ok(rating);
+        try {
+            RatingDto rating = ratingService.getRatingByMenuAndSession(menu, sessionId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rating not found"));
+            
+            return ResponseEntity.ok(new ApiResponse<>(true, "Rating found successfully.", rating));
+        } catch (ResponseStatusException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                new ApiResponse<>(false, "Rating not found for this menu and user.", null));
+        }
     }
 }

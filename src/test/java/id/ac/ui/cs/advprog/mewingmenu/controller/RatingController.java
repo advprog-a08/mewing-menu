@@ -1,11 +1,10 @@
 package id.ac.ui.cs.advprog.mewingmenu.controller;
 
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
-import id.ac.ui.cs.advprog.mewingmenu.model.TableSession;
 import id.ac.ui.cs.advprog.mewingmenu.rating.controller.RatingController;
+import id.ac.ui.cs.advprog.mewingmenu.rating.dto.RatingDto;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
-import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingServiceImpl;
-
+import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,8 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -29,149 +28,265 @@ import static org.mockito.Mockito.*;
 class RatingControllerTest {
 
     @Mock
-    private RatingServiceImpl ratingService;
+    private RatingService ratingService;
 
     @InjectMocks
     private RatingController ratingController;
 
     private Rating testRating;
-    private Menu testMenu;
-    private TableSession testTableSession;
+    private RatingDto testRatingDto;
+    private String sessionId;
+    private String menuId;
+    private String ratingId;
 
     @BeforeEach
     void setUp() {
-        testMenu = new Menu();
-        testMenu.setId("menu1");
+        sessionId = "test-session-123";
+        menuId = "menu-123";
+        ratingId = "rating-123";
 
         testRating = new Rating();
-        testRating.setId("1");
-        testRating.setMenu(testMenu);
-        testRating.setSessionId("session1");
+        testRating.setId(ratingId);
+        testRating.setSessionId(sessionId);
         testRating.setRating(5);
         testRating.setReview("Great food!");
 
-        testTableSession = new TableSession("session 1", "table 1", true);
-        testTableSession.setId("session1");
+        testRatingDto = new RatingDto();
+        testRatingDto.setId(ratingId);
+        testRatingDto.setSessionId(sessionId);
+        testRatingDto.setRating(5);
+        testRatingDto.setReview("Great food!");
     }
 
     @Test
-    void testAddRating() throws ExecutionException, InterruptedException {
+    void addRating_Success() throws ExecutionException, InterruptedException {
         when(ratingService.addRating(any(Rating.class)))
-            .thenReturn(CompletableFuture.completedFuture(testRating));
+                .thenReturn(CompletableFuture.completedFuture(testRatingDto));
 
-        ResponseEntity<CompletableFuture<Rating>> response = ratingController.addRating(testRating);
-        Rating result = response.getBody().get();
+        CompletableFuture<ResponseEntity<RatingController.ApiResponse<RatingDto>>> result = 
+                ratingController.addRating(testRating, sessionId);
 
+        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = result.get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testRating, result);
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Rating added successfully.", response.getBody().getMessage());
+        assertEquals(testRatingDto, response.getBody().getData());
+
         verify(ratingService).addRating(any(Rating.class));
     }
 
+
     @Test
-    void testGetRatingById_Found() {
-        when(ratingService.findById("1")).thenReturn(Optional.of(testRating));
+    void getAllRatings_Success() throws ExecutionException, InterruptedException {
+        List<RatingDto> ratings = Arrays.asList(testRatingDto);
+        when(ratingService.getAll()).thenReturn(CompletableFuture.completedFuture(ratings));
 
-        ResponseEntity<Rating> response = ratingController.getRatingById("1");
+        CompletableFuture<ResponseEntity<RatingController.ApiResponse<List<RatingDto>>>> result = 
+                ratingController.getAllRatings();
 
+        ResponseEntity<RatingController.ApiResponse<List<RatingDto>>> response = result.get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testRating, response.getBody());
-        verify(ratingService).findById("1");
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Successfully fetched all ratings.", response.getBody().getMessage());
+        assertEquals(ratings, response.getBody().getData());
+
+        verify(ratingService).getAll();
     }
 
     @Test
-    void testGetRatingById_NotFound() {
-        when(ratingService.findById("2")).thenReturn(Optional.empty());
+    void getRatingById_Success() {
+        when(ratingService.findById(ratingId)).thenReturn(Optional.of(testRatingDto));
 
-        ResponseEntity<Rating> response = ratingController.getRatingById("2");
+        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+                ratingController.getRatingById(ratingId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Rating found successfully.", response.getBody().getMessage());
+        assertEquals(testRatingDto, response.getBody().getData());
+
+        verify(ratingService).findById(ratingId);
+    }
+
+    @Test
+    void getRatingById_NotFound() {
+        when(ratingService.findById(ratingId)).thenReturn(Optional.empty());
+
+        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+                ratingController.getRatingById(ratingId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(ratingService).findById("2");
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("Rating not found.", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+
+        verify(ratingService).findById(ratingId);
     }
 
     @Test
-    void testGetRatingsByMenu() throws ExecutionException, InterruptedException {
-        List<Rating> ratings = List.of(testRating);
+    void getRatingsByMenu_Success() throws ExecutionException, InterruptedException {
+        List<RatingDto> ratings = Arrays.asList(testRatingDto);
         when(ratingService.getAllRatingsByMenu(any(Menu.class)))
-            .thenReturn(CompletableFuture.completedFuture(ratings));
+                .thenReturn(CompletableFuture.completedFuture(ratings));
 
-        ResponseEntity<CompletableFuture<List<Rating>>> response = 
-            ratingController.getRatingsByMenu("menu1");
-        List<Rating> result = response.getBody().get();
+        CompletableFuture<ResponseEntity<RatingController.ApiResponse<List<RatingDto>>>> result = 
+                ratingController.getRatingsByMenu(menuId);
 
+        ResponseEntity<RatingController.ApiResponse<List<RatingDto>>> response = result.get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, result.size());
-        assertEquals(testRating, result.get(0));
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Successfully fetched ratings for menu.", response.getBody().getMessage());
+        assertEquals(ratings, response.getBody().getData());
+
         verify(ratingService).getAllRatingsByMenu(any(Menu.class));
     }
 
     @Test
-    void testDeleteRating() {
-        doNothing().when(ratingService).deleteRatingById(eq("1"), anyString());
-    
-        ResponseEntity<Void> response = ratingController.deleteRating("1", testTableSession);
-        
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(ratingService).deleteRatingById(eq("1"), anyString());
+    void deleteRating_Success() {
+        doNothing().when(ratingService).deleteRatingById(ratingId, sessionId);
+
+        ResponseEntity<RatingController.ApiResponse<Void>> response = 
+                ratingController.deleteRating(ratingId, sessionId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Rating deleted successfully.", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+
+        verify(ratingService).deleteRatingById(ratingId, sessionId);
     }
 
     @Test
-    void testUpdateRating() throws ExecutionException, InterruptedException {
+    void deleteRating_NotFound() {
+        doThrow(new IllegalStateException("Rating not found"))
+                .when(ratingService).deleteRatingById(ratingId, sessionId);
+
+        ResponseEntity<RatingController.ApiResponse<Void>> response = 
+                ratingController.deleteRating(ratingId, sessionId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("Rating not found", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+
+        verify(ratingService).deleteRatingById(ratingId, sessionId);
+    }
+
+    @Test
+    void deleteRating_Forbidden() {
+        doThrow(new SecurityException("Access denied"))
+                .when(ratingService).deleteRatingById(ratingId, sessionId);
+
+        ResponseEntity<RatingController.ApiResponse<Void>> response = 
+                ratingController.deleteRating(ratingId, sessionId);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("Access denied", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+
+        verify(ratingService).deleteRatingById(ratingId, sessionId);
+    }
+
+    @Test
+    void updateRating_Success() throws ExecutionException, InterruptedException {
         Rating updatedRating = new Rating();
-        updatedRating.setId("1");
         updatedRating.setRating(4);
-        updatedRating.setReview("Good but could be better");
+        updatedRating.setReview("Updated review");
 
-        when(ratingService.updateRating(eq("1"), any(Rating.class), eq("session1")))
-            .thenReturn(CompletableFuture.completedFuture(updatedRating));
+        RatingDto updatedRatingDto = new RatingDto();
+        updatedRatingDto.setId(ratingId);
+        updatedRatingDto.setRating(4);
+        updatedRatingDto.setReview("Updated review");
 
-        ResponseEntity<CompletableFuture<Rating>> response = 
-            ratingController.updateRating("1", updatedRating, testTableSession);
-        Rating result = response.getBody().get();
+        when(ratingService.updateRating(eq(ratingId), any(Rating.class), eq(sessionId)))
+                .thenReturn(CompletableFuture.completedFuture(updatedRatingDto));
+
+        CompletableFuture<ResponseEntity<RatingController.ApiResponse<RatingDto>>> result = 
+                ratingController.updateRating(ratingId, updatedRating, sessionId);
+
+        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = result.get();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Rating updated successfully.", response.getBody().getMessage());
+        assertEquals(updatedRatingDto, response.getBody().getData());
+
+        verify(ratingService).updateRating(eq(ratingId), any(Rating.class), eq(sessionId));
+    }
+
+
+    @Test
+    void getAllBySession_Success() {
+        List<RatingDto> ratings = Arrays.asList(testRatingDto);
+        when(ratingService.getAllRatingsBySession(sessionId)).thenReturn(ratings);
+
+        ResponseEntity<RatingController.ApiResponse<List<RatingDto>>> response = 
+                ratingController.getAllBySession(sessionId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(updatedRating, result);
-        verify(ratingService).updateRating("1", updatedRating, "session1");
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Successfully fetched user ratings.", response.getBody().getMessage());
+        assertEquals(ratings, response.getBody().getData());
+
+        verify(ratingService).getAllRatingsBySession(sessionId);
     }
 
     @Test
-    void testGetAllBySession() throws ExecutionException, InterruptedException {
-        List<Rating> ratings = List.of(testRating);
-        when(ratingService.getAllRatingsBySession("session1"))
-            .thenReturn(CompletableFuture.completedFuture(ratings));
+    void getRatingByMenuAndSession_Success() {
+        when(ratingService.getRatingByMenuAndSession(any(Menu.class), eq(sessionId)))
+                .thenReturn(Optional.of(testRatingDto));
 
-        ResponseEntity<CompletableFuture<List<Rating>>> response = 
-            ratingController.getAllBySession(testTableSession);
-        List<Rating> result = response.getBody().get();
+        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+                ratingController.getRatingByMenuAndSession(menuId, sessionId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, result.size());
-        assertEquals(testRating, result.get(0));
-        verify(ratingService).getAllRatingsBySession("session1");
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("Rating found successfully.", response.getBody().getMessage());
+        assertEquals(testRatingDto, response.getBody().getData());
+
+        verify(ratingService).getRatingByMenuAndSession(any(Menu.class), eq(sessionId));
     }
 
     @Test
-    void testGetRatingByMenuAndSession_Found() {
-        when(ratingService.getRatingByMenuAndSession(argThat(menu -> "menu1".equals(menu.getId())), eq("session1")))
-            .thenReturn(Optional.of(testRating));
+    void getRatingByMenuAndSession_NotFound() {
+        when(ratingService.getRatingByMenuAndSession(any(Menu.class), eq(sessionId)))
+                .thenReturn(Optional.empty());
 
-        ResponseEntity<Rating> response = 
-            ratingController.getRatingByMenuAndSession("menu1", testTableSession);
+        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+                ratingController.getRatingByMenuAndSession(menuId, sessionId);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(testRating, response.getBody());
-        verify(ratingService).getRatingByMenuAndSession(argThat(menu -> "menu1".equals(menu.getId())), eq("session1"));
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("Rating not found for this menu and user.", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+
+        verify(ratingService).getRatingByMenuAndSession(any(Menu.class), eq(sessionId));
     }
 
     @Test
-    void testGetRatingByMenuAndSession_NotFound() {
-        when(ratingService.getRatingByMenuAndSession(argThat(menu -> "menu1".equals(menu.getId())), eq("session1")))
-            .thenReturn(Optional.empty());
+    void apiResponse_Constructor_Success() {
+        String message = "Test message";
+        String data = "Test data";
 
-        assertThrows(ResponseStatusException.class, () -> {
-            ratingController.getRatingByMenuAndSession("menu1", testTableSession);
-        });
+        RatingController.ApiResponse<String> response = 
+                new RatingController.ApiResponse<>(true, message, data);
 
-        verify(ratingService).getRatingByMenuAndSession(argThat(menu -> "menu1".equals(menu.getId())), eq("session1"));
+        assertTrue(response.isSuccess());
+        assertEquals(message, response.getMessage());
+        assertEquals(data, response.getData());
+    }
+
+    @Test
+    void apiResponse_Setters_Success() {
+        RatingController.ApiResponse<String> response = 
+                new RatingController.ApiResponse<>(false, "Initial", null);
+
+        response.setSuccess(true);
+        response.setMessage("Updated message");
+        response.setData("Updated data");
+
+        assertTrue(response.isSuccess());
+        assertEquals("Updated message", response.getMessage());
+        assertEquals("Updated data", response.getData());
     }
 }

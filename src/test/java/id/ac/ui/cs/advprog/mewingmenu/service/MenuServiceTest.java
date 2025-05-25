@@ -1,13 +1,8 @@
 package id.ac.ui.cs.advprog.mewingmenu.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -167,5 +162,71 @@ public class MenuServiceTest {
         } catch (IllegalArgumentException e) {
             assertEquals("Invalid menu name", e.getMessage());
         }
+    }
+
+    @Test
+    @DisplayName("It should reduce menu quantity successfully")
+    void testReduceQuantity() {
+        String menuId = UUID.randomUUID().toString();
+        Menu existingMenu = new Menu();
+        existingMenu.setId(menuId);
+        existingMenu.setName("Test Menu");
+        existingMenu.setQuantity(BigDecimal.valueOf(10));
+
+        BigDecimal quantityToReduce = BigDecimal.valueOf(3);
+
+        when(menuRepository.findById(menuId)).thenReturn(Optional.of(existingMenu));
+        when(menuRepository.save(any(Menu.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Optional<Menu> result = menuService.reduceQuantity(menuId, quantityToReduce);
+
+        assertTrue(result.isPresent());
+        assertEquals(BigDecimal.valueOf(7), result.get().getQuantity());
+        verify(menuRepository).findById(menuId);
+        verify(menuRepository).save(existingMenu);
+    }
+
+    @Test
+    @DisplayName("It should return empty when menu is not found for quantity reduction")
+    void testReduceQuantityMenuNotFound() {
+        String menuId = UUID.randomUUID().toString();
+        BigDecimal quantityToReduce = BigDecimal.valueOf(3);
+
+        when(menuRepository.findById(menuId)).thenReturn(Optional.empty());
+
+        Optional<Menu> result = menuService.reduceQuantity(menuId, quantityToReduce);
+
+        assertTrue(result.isEmpty());
+        verify(menuRepository).findById(menuId);
+        verify(menuRepository, times(0)).save(any(Menu.class));
+    }
+
+    @Test
+    @DisplayName("It should throw IllegalArgumentException when quantity is zero")
+    void testReduceQuantityWithZero() {
+        BigDecimal zeroQuantity = BigDecimal.ZERO;
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            menuService.reduceQuantity(mockId, zeroQuantity);
+        });
+
+        assertEquals("Quantity must be greater than zero", exception.getMessage());
+        verify(menuRepository, never()).findById(any());
+        verify(menuRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("It should throw IllegalArgumentException when quantity is negative")
+    void testReduceQuantityWithNegative() {
+        BigDecimal negativeQuantity = new BigDecimal("-5");
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            menuService.reduceQuantity(mockId, negativeQuantity);
+        });
+
+        assertEquals("Quantity must be greater than zero", exception.getMessage());
+
+        verify(menuRepository, never()).findById(any());
+        verify(menuRepository, never()).save(any());
     }
 }
