@@ -75,6 +75,10 @@ public class Menu {
     @JoinColumn(name = "category_id")
     @JsonBackReference
     private MenuCategory category;
+
+    @Column(name = "average_rating", precision = 3, scale = 2)
+    private BigDecimal averageRating;
+
     
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
