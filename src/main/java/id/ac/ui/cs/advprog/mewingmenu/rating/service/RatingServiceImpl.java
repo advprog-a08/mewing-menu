@@ -6,12 +6,8 @@ import id.ac.ui.cs.advprog.mewingmenu.rating.mapper.RatingMapper;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.repository.RatingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +15,8 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class RatingServiceImpl implements RatingService {
 
-    private final RatingRepository ratingRepository;
+    @Autowired
+    private RatingRepository ratingRepository;
 
     @Autowired
     public RatingServiceImpl(RatingRepository ratingRepository) {
