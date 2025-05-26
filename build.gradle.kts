@@ -43,12 +43,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     // gRPC dependencies
-    implementation("org.springframework.grpc:spring-grpc-spring-boot-starter:0.4.0")
+    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
+    implementation("io.grpc:grpc-netty-shaded:$grpcVersion")
     implementation("com.google.protobuf:protobuf-java:$protobufVersion")
     compileOnly("javax.annotation:javax.annotation-api:1.3.2")
-    
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    testImplementation("org.springframework.security:spring-security-test")
+
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
