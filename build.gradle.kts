@@ -130,6 +130,23 @@ tasks.test {
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+
+    // Exlude Admin
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) {
+                exclude(
+                    "id/ac/ui/cs/advprog/mewingmenu/grpc/**",
+                    "id/ac/ui/cs/advprog/mewingmenu/utils/**",
+                    "id/ac/ui/cs/advprog/mewingmenu/config/**",
+                )
+            }
+        })
+    )
 }
 
 tasks.withType<Test>().configureEach {
