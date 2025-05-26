@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
 import id.ac.ui.cs.advprog.mewingmenu.menu.repository.MenuRepository;
+import id.ac.ui.cs.advprog.mewingmenu.utils.PaginatedData;
 
 @Service
 public class MenuServiceImpl implements MenuService {
@@ -18,6 +19,19 @@ public class MenuServiceImpl implements MenuService {
     @Override
     public List<Menu> getAllMenus() {
         return menuRepository.findAll();
+    }
+
+    @Override
+    public PaginatedData<Menu> getAllMenus(int page, int size) {
+        List<Menu> allMenus = menuRepository.findAll();
+        int totalMenus = allMenus.size();
+
+        List<Menu> pagedMenus = allMenus.stream()
+            .skip(page * size)
+            .limit(size)
+            .toList();
+
+        return new PaginatedData<>(pagedMenus, page, size, totalMenus);
     }
 
     @Override

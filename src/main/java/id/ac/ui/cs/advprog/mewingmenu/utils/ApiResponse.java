@@ -4,6 +4,7 @@ public class ApiResponse<T> {
     private boolean success;
     private String message;
     private T data;
+    private int page;
 
     public ApiResponse() {
     }
@@ -12,6 +13,13 @@ public class ApiResponse<T> {
         this.success = success;
         this.message = message;
         this.data = data;
+    }
+
+    public ApiResponse(boolean success, String message, T data, int page) {
+        this.success = success;
+        this.message = message;
+        this.data = data;
+        this.page = page;
     }
 
     // Getters & Setters
@@ -37,5 +45,13 @@ public class ApiResponse<T> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public int getPage() {
+        return page;
+    }
+    
+    public void setPage(int page) {
+        this.page = page;
     }
 }

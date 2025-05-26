@@ -9,6 +9,11 @@ public class ResponseUtil {
         ApiResponse<T> response = new ApiResponse<>(true, message, data);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    
+    public static <T> ResponseEntity<ApiResponse<T>> success(T data, String message, int page) {
+        ApiResponse<T> response = new ApiResponse<>(true, message, data, page);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
     public static <T> ResponseEntity<ApiResponse<T>> created(T data, String message) {
         ApiResponse<T> response = new ApiResponse<>(true, message, data);
