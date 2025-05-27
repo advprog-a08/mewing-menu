@@ -17,6 +17,10 @@ public class MewingMenuApplication {
 
         System.setProperty("grpc.host", dotenv.get("SIGMA_AUTHENTICATION_GRPC_HOST"));
         System.setProperty("grpc.port", dotenv.get("SIGMA_AUTHENTICATION_GRPC_PORT"));
+
+        System.out.println("Connecting to database at: " + System.getProperty("spring.datasource.url"));
+        System.out.println("Connecting to gRPC at: " + System.getProperty("grpc.host") + ":" + System.getProperty("grpc.port"));
+        System.out.println("Starting Mewing Menu Application...");
    
         SpringApplication.run(MewingMenuApplication.class, args);
     }
