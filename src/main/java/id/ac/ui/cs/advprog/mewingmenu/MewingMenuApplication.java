@@ -14,6 +14,9 @@ public class MewingMenuApplication {
         System.setProperty("spring.datasource.url", dotenv.get("DATABASE_URL"));
         System.setProperty("spring.datasource.username", dotenv.get("DATABASE_USERNAME"));
         System.setProperty("spring.datasource.password", dotenv.get("DATABASE_PASSWORD"));
+
+        System.setProperty("grpc.host", dotenv.get("SIGMA_AUTHENTICATION_GRPC_HOST"));
+        System.setProperty("grpc.port", dotenv.get("SIGMA_AUTHENTICATION_GRPC_PORT"));
    
         SpringApplication.run(MewingMenuApplication.class, args);
     }
