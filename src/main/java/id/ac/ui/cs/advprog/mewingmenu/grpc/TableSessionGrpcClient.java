@@ -22,24 +22,10 @@ public class TableSessionGrpcClient {
         stub = TableSessionServiceGrpc.newBlockingStub(channel);
     }
 
-    public TableSessionOuterClass.TableSessionResponse createTableSession(String tableId) {
-        TableSessionOuterClass.TableIdRequest request = TableSessionOuterClass.TableIdRequest.newBuilder()
-                .setTableId(tableId)
-                .build();
-        return stub.createTableSession(request);
-    }
-
     public TableSessionOuterClass.TableSessionResponse verifyTableSession(String sessionId) {
         TableSessionOuterClass.SessionIdRequest request = TableSessionOuterClass.SessionIdRequest.newBuilder()
                 .setSessionId(sessionId)
                 .build();
         return stub.verifyTableSession(request);
-    }
-
-    public TableSessionOuterClass.TableSessionResponse deactivateTableSession(String sessionId) {
-        TableSessionOuterClass.SessionIdRequest request = TableSessionOuterClass.SessionIdRequest.newBuilder()
-                .setSessionId(sessionId)
-                .build();
-        return stub.deactivateTableSession(request);
     }
 }
