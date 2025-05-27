@@ -7,7 +7,6 @@ import org.hibernate.annotations.GenericGenerator;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import jakarta.persistence.CascadeType;

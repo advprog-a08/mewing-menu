@@ -15,7 +15,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private EndpointLogger endpointLogger;
 
+    @SuppressWarnings("unused")
     private final AuthenticatedUserArgumentResolver argumentResolver;
+    @SuppressWarnings("unused")
     private final AuthInterceptor authInterceptor;
 
     public WebConfig(AuthenticatedUserArgumentResolver argumentResolver, AuthInterceptor authInterceptor) {

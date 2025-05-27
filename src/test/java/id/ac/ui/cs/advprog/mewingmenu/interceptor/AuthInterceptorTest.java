@@ -335,6 +335,7 @@ class AuthInterceptorTest {
         @RequireTableSession
         public void bothAnnotationsMethod() {}
 
+        @SuppressWarnings("unused")
         public void noAnnotationsMethod() {}
     }
 

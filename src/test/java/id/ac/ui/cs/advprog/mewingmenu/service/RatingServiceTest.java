@@ -41,7 +41,9 @@ public class RatingServiceTest {
     private Rating rating;
     private Rating rating2;
     private Rating rating3;
+    @SuppressWarnings("unused")
     private RatingDto expectedDto1;
+    @SuppressWarnings("unused")
     private RatingDto expectedDto2;
     private String sessionId1;
     private String sessionId2;
