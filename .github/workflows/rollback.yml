@@ -7,7 +7,7 @@ env:
   IMAGE_NAME: andrew4coding/mewing-menu
   DEPLOYMENT_NAME: mewing-menu
   CONTAINER_NAME: mewing-menu
-  ROLLBACK_FILE_PATH: /kube-rollbacks/mewing_menu.txt
+  ROLLBACK_FILE_PATH: ~/kube-rollbacks/mewing_menu.txt
 
 jobs:
   rollback:
@@ -24,13 +24,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
-            cd ~/kube-rollbacks
-            (cat mewing_menu.txt | sed '$d') | tail -n 1 | grep -oP '(?<=\-\s)(.*)' > tmp
+            (cat ${{env.ROLLBACK_FILE_PATH}} | sed '$d') | tail -n 1 | grep -oP '(?<=\-\s)(.*)' > tmp
             cat tmp
           EOF
 
           # Fetch the image string from the server
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat /kube-rollbacks/tmp" > rollback_image.txt
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat ~/kube-rollbacks/tmp" > rollback_image.txt
           cat rollback_image.txt
           image=$(cat rollback_image.txt)
           echo "rollback_image=$image" >> "$GITHUB_OUTPUT"
