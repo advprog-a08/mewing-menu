@@ -1,14 +1,12 @@
 name: Rollback App Version in K3S
 
-# Trigger the workflow manually via the GitHub Actions UI.
 on:
   workflow_dispatch:
 
-# Define environment variables that can be used throughout the workflow.
 env:
-  IMAGE_NAME: andrew4coding/mewing-menu # Your Docker image name
-  DEPLOYMENT_NAME: mewing-menu         # The name of your Kubernetes Deployment
-  CONTAINER_NAME: mewing-menu          # The name of the container within your Kubernetes Deployment
+  IMAGE_NAME: andrew4coding/mewing-menu
+  DEPLOYMENT_NAME: mewing-menu
+  CONTAINER_NAME: mewing-menu
   ROLLBACK_FILE_PATH: /kube-rollbacks/mewing_menu.txt
 
 jobs:
@@ -21,44 +19,37 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Read Rollback History File
-        id: read_history
+      - name: Extract Rollback Image
+        id: extract_image
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat ${{ env.ROLLBACK_FILE_PATH }} 2>/dev/null || true" > rollback_history.txt
-          cat rollback_history.txt
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+            cd /kube-rollbacks
+            (cat mewing_menu.txt | sed '$d') | tail -n 1 | grep -oP '(?<=\-\s)(.*)' > tmp
+            cat tmp
+          EOF
 
-          line_count=$(wc -l < rollback_history.txt)
-          echo "history_lines=$line_count" >> "$GITHUB_OUTPUT"
-
-      - name: Determine Rollback Image
-        id: determine_image
-        run: |
-          line_count="${{ steps.read_history.outputs.history_lines }}"
-          if [ "$line_count" -lt 2 ]; then
-            echo "Warning: Not enough rollback history (need at least 2 lines)."
-            exit 0
-          fi
-
-          previous_image=$(tail -n 2 rollback_history.txt | head -n 1 | awk -F ' - ' '{print $2}')
-          echo "Rollback image: $previous_image"
-          echo "rollback_image=$previous_image" >> "$GITHUB_OUTPUT"
+          # Fetch the image string from the server
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat /kube-rollbacks/tmp" > rollback_image.txt
+          cat rollback_image.txt
+          image=$(cat rollback_image.txt)
+          echo "rollback_image=$image" >> "$GITHUB_OUTPUT"
 
       - name: SSH and Rollout Previous Image to K3S
-        if: steps.determine_image.outputs.rollback_image
+        if: steps.extract_image.outputs.rollback_image
         run: |
           set -e
-
-          ROLLBACK_IMAGE="${{ steps.determine_image.outputs.rollback_image }}"
+          ROLLBACK_IMAGE="${{ steps.extract_image.outputs.rollback_image }}"
 
           echo "Rolling back to image: $ROLLBACK_IMAGE for deployment '${{ env.DEPLOYMENT_NAME }}'..."
 
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
             set -e
-            kubectl set image deployment/\$DEPLOYMENT_NAME \$CONTAINER_NAME=\$ROLLBACK_IMAGE --namespace=default
-            echo "Waiting for rollout to finish for deployment '\$DEPLOYMENT_NAME'..."
-            if ! kubectl rollout status deployment/\$DEPLOYMENT_NAME --timeout=60s --namespace=default; then
+            kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} ${env.CONTAINER_NAME}=$ROLLBACK_IMAGE --namespace=default
+            echo "Waiting for rollout to finish for deployment '${{ env.DEPLOYMENT_NAME }}'..."
+            if ! kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=60s --namespace=default; then
               echo "❌ Rollout failed."
               exit 1
             fi
-            echo "✅ Rollback to previous image succeeded for '\$DEPLOYMENT_NAME' with image \$ROLLBACK_IMAGE"
+            echo "✅ Rollback to previous image succeeded for '${{ env.DEPLOYMENT_NAME }}' with image $ROLLBACK_IMAGE"
           EOF
