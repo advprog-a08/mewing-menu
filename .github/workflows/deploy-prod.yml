@@ -50,6 +50,11 @@ jobs:
             IMAGE=${{ env.IMAGE_NAME }}:${{ github.sha }}
             DEPLOYMENT_NAME=mewing-menu
             CONTAINER_NAME=mewing-menu
+            ROLLBACK_FILE=mewing_menu.txt
+
+            cd ~/kube-rollbacks
+
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - \$IMAGE" >> \$ROLLBACK_FILE
 
             echo "Setting new image: \$IMAGE"
             kubectl set image deployment/\$DEPLOYMENT_NAME \$CONTAINER_NAME=\$IMAGE --namespace=default
