@@ -1,0 +1,50 @@
+name: Rollback App Version in K3S
+
+# Trigger the workflow manually via the GitHub Actions UI.
+on:
+  workflow_dispatch:
+
+# Define environment variables that can be used throughout the workflow.
+env:
+  IMAGE_NAME: andrew4coding/mewing-menu # Your Docker image name
+  DEPLOYMENT_NAME: mewing-menu          # The name of your Kubernetes Deployment
+  CONTAINER_NAME: mewing-menu           # The name of the container within your Kubernetes Deployment
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2 # Get the last two commits
+
+      - name: Get Previous Commit SHA
+        id: previous_commit
+        run: |
+          PREVIOUS_SHA=$(git rev-parse HEAD~1)
+          echo "previous_sha=$PREVIOUS_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: SSH and Rollout Previous Image to K3S
+        run: |
+          set -e
+
+          PREVIOUS_IMAGE="${{ env.IMAGE_NAME }}:${{ steps.previous_commit.outputs.previous_sha }}"
+
+          echo "Rolling back to image: $PREVIOUS_IMAGE for deployment '${{ env.DEPLOYMENT_NAME }}'..."
+
+          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} ${{ env.CONTAINER_NAME }}=$PREVIOUS_IMAGE --namespace=default
+
+          echo "Waiting for rollout to finish for deployment '${{ env.DEPLOYMENT_NAME }}'..."
+          if ! kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=60s --namespace=default; then
+            echo "❌ Rollout failed."
+            exit 1
+          fi
+
+          echo "✅ Rollback to previous image succeeded for '${{ env.DEPLOYMENT_NAME }}' with image $PREVIOUS_IMAGE"
