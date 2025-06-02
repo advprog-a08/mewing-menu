@@ -25,6 +25,7 @@ jobs:
         id: read_history
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat ${{ env.ROLLBACK_FILE_PATH }} 2>/dev/null || true" > rollback_history.txt
+          cat rollback_history.txt # Print the content of the file
           history=$(cat rollback_history.txt)
           lines=$(echo "$history" | wc -l)
           echo "history_lines=$lines" >> "$GITHUB_OUTPUT"
