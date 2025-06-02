@@ -7,8 +7,8 @@ on:
 # Define environment variables that can be used throughout the workflow.
 env:
   IMAGE_NAME: andrew4coding/mewing-menu # Your Docker image name
-  DEPLOYMENT_NAME: mewing-menu          # The name of your Kubernetes Deployment
-  CONTAINER_NAME: mewing-menu           # The name of the container within your Kubernetes Deployment
+  DEPLOYMENT_NAME: mewing-menu         # The name of your Kubernetes Deployment
+  CONTAINER_NAME: mewing-menu          # The name of the container within your Kubernetes Deployment
   ROLLBACK_FILE_PATH: /kube-rollbacks/mewing_menu.txt
 
 jobs:
@@ -38,8 +38,7 @@ jobs:
           echo "Number of history lines: $lines"
 
           if [[ "$lines" -le 1 ]]; then
-            echo "Error: Not enough rollback history available. Found $lines entries."
-            exit 1
+            echo "Warning: Not enough rollback history available (less than 2 entries). Cannot rollback."
           else
             history_array=$(echo "$rollback_data" | jq -c '.[]')
             # Get the second to last element
