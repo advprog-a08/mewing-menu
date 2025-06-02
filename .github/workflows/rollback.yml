@@ -25,29 +25,23 @@ jobs:
         id: read_history
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cat ${{ env.ROLLBACK_FILE_PATH }} 2>/dev/null || true" > rollback_history.txt
-          cat rollback_history.txt # Print the content of the file
-          history=$(cat rollback_history.txt)
-          lines=$(echo "$history" | wc -l)
-          echo "history_lines=$lines" >> "$GITHUB_OUTPUT"
-          echo "rollback_data=\"$(echo "$history" | jq -R -s -c 'split("\n") | map(select(length > 0))')\"" >> "$GITHUB_OUTPUT"
+          cat rollback_history.txt
+
+          line_count=$(wc -l < rollback_history.txt)
+          echo "history_lines=$line_count" >> "$GITHUB_OUTPUT"
 
       - name: Determine Rollback Image
         id: determine_image
         run: |
-          lines="${{ steps.read_history.outputs.history_lines }}"
-          rollback_data="${{ steps.read_history.outputs.rollback_data }}"
-          echo "Number of history lines: $lines"
-
-          if [[ "$lines" -le 1 ]]; then
-            echo "Warning: Not enough rollback history available (less than 2 entries). Cannot rollback."
-          else
-            history_array=$(echo "$rollback_data" | jq -c '.[]')
-            # Get the second to last element
-            previous_entry=$(echo "$history_array" | jq -r '.[.length - 2]')
-            previous_image=$(echo "$previous_entry" | awk '{print $3}')
-            echo "Rollbacking to image: $previous_image"
-            echo "rollback_image=$previous_image" >> "$GITHUB_OUTPUT"
+          line_count="${{ steps.read_history.outputs.history_lines }}"
+          if [ "$line_count" -lt 2 ]; then
+            echo "Warning: Not enough rollback history (need at least 2 lines)."
+            exit 0
           fi
+
+          previous_image=$(tail -n 2 rollback_history.txt | head -n 1 | awk -F ' - ' '{print $2}')
+          echo "Rollback image: $previous_image"
+          echo "rollback_image=$previous_image" >> "$GITHUB_OUTPUT"
 
       - name: SSH and Rollout Previous Image to K3S
         if: steps.determine_image.outputs.rollback_image
