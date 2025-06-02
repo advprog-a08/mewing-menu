@@ -24,7 +24,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
-            cd /kube-rollbacks
+            cd ~/kube-rollbacks
             (cat mewing_menu.txt | sed '$d') | tail -n 1 | grep -oP '(?<=\-\s)(.*)' > tmp
             cat tmp
           EOF
