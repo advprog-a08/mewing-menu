@@ -5,6 +5,8 @@ import id.ac.ui.cs.advprog.mewingmenu.rating.controller.RatingController;
 import id.ac.ui.cs.advprog.mewingmenu.rating.dto.RatingDto;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingService;
+import id.ac.ui.cs.advprog.mewingmenu.utils.ApiResponse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,10 +65,10 @@ class RatingControllerTest {
         when(ratingService.addRating(any(Rating.class)))
                 .thenReturn(CompletableFuture.completedFuture(testRatingDto));
 
-        CompletableFuture<ResponseEntity<RatingController.ApiResponse<RatingDto>>> result = 
+        CompletableFuture<ResponseEntity<ApiResponse<RatingDto>>> result = 
                 ratingController.addRating(testRating, sessionId);
 
-        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = result.get();
+        ResponseEntity<ApiResponse<RatingDto>> response = result.get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
         assertEquals("Rating added successfully.", response.getBody().getMessage());
@@ -81,10 +83,10 @@ class RatingControllerTest {
         List<RatingDto> ratings = Arrays.asList(testRatingDto);
         when(ratingService.getAll()).thenReturn(CompletableFuture.completedFuture(ratings));
 
-        CompletableFuture<ResponseEntity<RatingController.ApiResponse<List<RatingDto>>>> result = 
+        CompletableFuture<ResponseEntity<ApiResponse<List<RatingDto>>>> result = 
                 ratingController.getAllRatings();
 
-        ResponseEntity<RatingController.ApiResponse<List<RatingDto>>> response = result.get();
+        ResponseEntity<ApiResponse<List<RatingDto>>> response = result.get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
         assertEquals("Successfully fetched all ratings.", response.getBody().getMessage());
@@ -97,7 +99,7 @@ class RatingControllerTest {
     void getRatingById_Success() {
         when(ratingService.findById(ratingId)).thenReturn(Optional.of(testRatingDto));
 
-        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+        ResponseEntity<ApiResponse<RatingDto>> response = 
                 ratingController.getRatingById(ratingId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -112,7 +114,7 @@ class RatingControllerTest {
     void getRatingById_NotFound() {
         when(ratingService.findById(ratingId)).thenReturn(Optional.empty());
 
-        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+        ResponseEntity<ApiResponse<RatingDto>> response = 
                 ratingController.getRatingById(ratingId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -129,10 +131,10 @@ class RatingControllerTest {
         when(ratingService.getAllRatingsByMenu(any(Menu.class)))
                 .thenReturn(CompletableFuture.completedFuture(ratings));
 
-        CompletableFuture<ResponseEntity<RatingController.ApiResponse<List<RatingDto>>>> result = 
+        CompletableFuture<ResponseEntity<ApiResponse<List<RatingDto>>>> result = 
                 ratingController.getRatingsByMenu(menuId);
 
-        ResponseEntity<RatingController.ApiResponse<List<RatingDto>>> response = result.get();
+        ResponseEntity<ApiResponse<List<RatingDto>>> response = result.get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
         assertEquals("Successfully fetched ratings for menu.", response.getBody().getMessage());
@@ -145,7 +147,7 @@ class RatingControllerTest {
     void deleteRating_Success() {
         doNothing().when(ratingService).deleteRatingById(ratingId, sessionId);
 
-        ResponseEntity<RatingController.ApiResponse<Void>> response = 
+        ResponseEntity<ApiResponse<Void>> response = 
                 ratingController.deleteRating(ratingId, sessionId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -161,7 +163,7 @@ class RatingControllerTest {
         doThrow(new IllegalStateException("Rating not found"))
                 .when(ratingService).deleteRatingById(ratingId, sessionId);
 
-        ResponseEntity<RatingController.ApiResponse<Void>> response = 
+        ResponseEntity<ApiResponse<Void>> response = 
                 ratingController.deleteRating(ratingId, sessionId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -177,7 +179,7 @@ class RatingControllerTest {
         doThrow(new SecurityException("Access denied"))
                 .when(ratingService).deleteRatingById(ratingId, sessionId);
 
-        ResponseEntity<RatingController.ApiResponse<Void>> response = 
+        ResponseEntity<ApiResponse<Void>> response = 
                 ratingController.deleteRating(ratingId, sessionId);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -202,10 +204,10 @@ class RatingControllerTest {
         when(ratingService.updateRating(eq(ratingId), any(Rating.class), eq(sessionId)))
                 .thenReturn(CompletableFuture.completedFuture(updatedRatingDto));
 
-        CompletableFuture<ResponseEntity<RatingController.ApiResponse<RatingDto>>> result = 
+        CompletableFuture<ResponseEntity<ApiResponse<RatingDto>>> result = 
                 ratingController.updateRating(ratingId, updatedRating, sessionId);
 
-        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = result.get();
+        ResponseEntity<ApiResponse<RatingDto>> response = result.get();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isSuccess());
         assertEquals("Rating updated successfully.", response.getBody().getMessage());
@@ -220,7 +222,7 @@ class RatingControllerTest {
         List<RatingDto> ratings = Arrays.asList(testRatingDto);
         when(ratingService.getAllRatingsBySession(sessionId)).thenReturn(ratings);
 
-        ResponseEntity<RatingController.ApiResponse<List<RatingDto>>> response = 
+        ResponseEntity<ApiResponse<List<RatingDto>>> response = 
                 ratingController.getAllBySession(sessionId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -236,7 +238,7 @@ class RatingControllerTest {
         when(ratingService.getRatingByMenuAndSession(any(Menu.class), eq(sessionId)))
                 .thenReturn(Optional.of(testRatingDto));
 
-        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+        ResponseEntity<ApiResponse<RatingDto>> response = 
                 ratingController.getRatingByMenuAndSession(menuId, sessionId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -252,7 +254,7 @@ class RatingControllerTest {
         when(ratingService.getRatingByMenuAndSession(any(Menu.class), eq(sessionId)))
                 .thenReturn(Optional.empty());
 
-        ResponseEntity<RatingController.ApiResponse<RatingDto>> response = 
+        ResponseEntity<ApiResponse<RatingDto>> response = 
                 ratingController.getRatingByMenuAndSession(menuId, sessionId);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -268,8 +270,8 @@ class RatingControllerTest {
         String message = "Test message";
         String data = "Test data";
 
-        RatingController.ApiResponse<String> response = 
-                new RatingController.ApiResponse<>(true, message, data);
+        ApiResponse<String> response = 
+                new ApiResponse<>(true, message, data);
 
         assertTrue(response.isSuccess());
         assertEquals(message, response.getMessage());
@@ -278,8 +280,8 @@ class RatingControllerTest {
 
     @Test
     void apiResponse_Setters_Success() {
-        RatingController.ApiResponse<String> response = 
-                new RatingController.ApiResponse<>(false, "Initial", null);
+        ApiResponse<String> response = 
+                new ApiResponse<>(false, "Initial", null);
 
         response.setSuccess(true);
         response.setMessage("Updated message");
