@@ -5,6 +5,8 @@ import id.ac.ui.cs.advprog.mewingmenu.menu.model.Menu;
 import id.ac.ui.cs.advprog.mewingmenu.rating.dto.RatingDto;
 import id.ac.ui.cs.advprog.mewingmenu.rating.model.Rating;
 import id.ac.ui.cs.advprog.mewingmenu.rating.service.RatingService;
+import id.ac.ui.cs.advprog.mewingmenu.utils.ApiResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,45 +26,7 @@ public class RatingController {
     public RatingController(RatingService ratingService) {
         this.ratingService = ratingService;
     }
-
-    // Response wrapper class
-    public static class ApiResponse<T> {
-        private boolean success;
-        private String message;
-        private T data;
-
-        public ApiResponse(boolean success, String message, T data) {
-            this.success = success;
-            this.message = message;
-            this.data = data;
-        }
-
-        // Getters and setters
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public void setSuccess(boolean success) {
-            this.success = success;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-
-        public T getData() {
-            return data;
-        }
-
-        public void setData(T data) {
-            this.data = data;
-        }
-    }
-
+    
     @PostMapping
     @RequireTableSession
     public CompletableFuture<ResponseEntity<ApiResponse<RatingDto>>> addRating(
